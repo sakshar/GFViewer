@@ -5,7 +5,6 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 import pandas as pd
 import math
 import os
-import sys
 import argparse
 from reportlab.lib.units import cm
 import PyPDF2
