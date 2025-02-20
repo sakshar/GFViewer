@@ -320,7 +320,7 @@ def plot_gene_families(args):
         if args.legends_per_page:
             combine_legend_with_plot(legend_file, current_file)
 
-    if args.combine_plots:
+    if args.concatenate_pages:
         merge_pdfs(plot_path, total_pages)
 
     if args.legends_per_page:
@@ -358,8 +358,8 @@ def parse_arguments():
                         help='Plot centromeres of the chromosomes along with multi gene families')
     parser.add_argument('-lpp', '--legends_per_page', action='store_true',
                         help='Plot legends per page in the PDF')
-    parser.add_argument('-comb', '--combine_plots', action='store_true',
-                        help='Combine the plots into a single PDF file')
+    parser.add_argument('-conc', '--concatenate_pages', action='store_true',
+                        help='Concatenate the pages into a single PDF file')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -423,8 +423,8 @@ def main():
     if args.legends_per_page:
         print("Legends will be plotted per page.")
 
-    if args.combine_plots:
-        print("Plots will be combined into a single PDF.")
+    if args.concatenate_pages:
+        print("Pages will be concatenated into a single PDF.")
 
     plot_gene_families(args)
 
