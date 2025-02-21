@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="gfviewer",
-    version="1.0.1",
+    version="1.0.2",
     author="Sakshar Chakravarty",
     author_email="schak026@ucr.edu",
     description="A tool for visualizing the localization of multi-gene families across the genome of a given organism",
@@ -15,7 +15,8 @@ setup(
         "pandas",
         "matplotlib",
         "reportlab",
-        "pypdf2"
+        "pypdf2",
+        "openpyxl"
     ],
     python_requires=">=3.8",
     entry_points={

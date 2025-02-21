@@ -3,3 +3,4 @@ pandas
 matplotlib
 reportlab
 pypdf2
+openpyxl

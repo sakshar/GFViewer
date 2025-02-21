@@ -172,6 +172,23 @@ def combine_legend_with_plot(legend_file, gf_file):
     # Overlay the legend PDF onto the first page
     legend_page = legend.pages[0]  # Modify first page
     gf_page = gf.pages[0]
+
+    # Match page sizes
+    # Get dimensions of the base page
+    legend_width = float(legend_page.mediabox.width)
+    legend_height = float(legend_page.mediabox.height)
+
+    # Get dimensions of the overlay page
+    gf_width = float(gf_page.mediabox.width)
+    gf_height = float(gf_page.mediabox.height)
+
+    # Scale the overlay page to fit the base page
+    scale_x = legend_width / gf_width
+    scale_y = legend_height / gf_height
+    scale = min(scale_x, scale_y)  # Maintain aspect ratio
+
+    gf_page.scale_by(scale)
+
     legend_page.merge_page(gf_page)
     writer.add_page(legend_page)
 
@@ -198,7 +215,7 @@ def merge_pdfs(out_path, total_pages):
 
 def plot_legends(color_map, out_file, location, orientation, legends_per_page, centromeres, nrows):
     if legends_per_page:
-        fig, ax = plt.subplots(figsize=(11.69, 8.27))
+        fig, ax = plt.subplots(figsize=(12, 9))
     else:
         fig, ax = plt.subplots()
     color_list = []
@@ -271,7 +288,7 @@ def plot_gene_families(args):
     total_pages = int(math.ceil(len(chrs) / args.number_of_chromosomes_per_page))
     for p in range(1, total_pages + 1):
         chr_diagram = BasicChromosome.Organism()
-        chr_diagram.page_size = (29.693 * cm, 21.006 * cm)  # A4 landscape
+        chr_diagram.page_size = (30.48 * cm, 22.86 * cm)  # 4:3 landscape
 
         current_iteration = args.number_of_chromosomes_per_page
         if p == total_pages and len(chrs) % args.number_of_chromosomes_per_page != 0:
