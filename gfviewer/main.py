@@ -134,16 +134,15 @@ def convert_to_gb(data, gb_path, seq_lengths):
 
     for _, row in data.iterrows():
         if str(row["gene_family"]) == "centromere" and str(row["strand"]) == "0":
-            feature_1 = SeqFeature(FeatureLocation(row["start"], row["end"]), type=str(row["gene_family"]), strand=1)
+            feature_1 = SeqFeature(FeatureLocation(row["start"], row["end"], strand=1), type=str(row["gene_family"]))
             feature_1.qualifiers["gene"] = [str(row["gene_id"]).capitalize()]
             records[str(row["chromosome"])].features.append(feature_1)
 
-            feature_2 = SeqFeature(FeatureLocation(row["start"], row["end"]), type=str(row["gene_family"]), strand=-1)
+            feature_2 = SeqFeature(FeatureLocation(row["start"], row["end"], strand=-1), type=str(row["gene_family"]))
             feature_2.qualifiers["gene"] = [str(row["gene_id"]).capitalize()]
             records[str(row["chromosome"])].features.append(feature_2)
         else:
-            feature = SeqFeature(FeatureLocation(row["start"], row["end"]), type=str(row["gene_family"]),
-                                 strand=1 if row["strand"] == "+" else -1)
+            feature = SeqFeature(FeatureLocation(row["start"], row["end"], strand=1 if row["strand"] == "+" else -1), type=str(row["gene_family"]))
 
             # Add gene qualifiers (ID and Family)
             feature.qualifiers["gene"] = [str(row["gene_id"])]  # Storing gene ID
