@@ -15,8 +15,7 @@ setup(
         "pandas",
         "matplotlib",
         "reportlab",
-        "pypdf2",
-        "pymupdf"
+        "pypdf2"
     ],
     python_requires=">=3.8",
     entry_points={

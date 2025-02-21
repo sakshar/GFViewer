@@ -8,7 +8,7 @@ import os
 import argparse
 from reportlab.lib.units import cm
 import PyPDF2
-import pymupdf as fitz
+from PyPDF2 import PdfReader, PdfWriter
 from Bio.Graphics import BasicChromosome
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -165,16 +165,19 @@ def convert_to_gb(data, gb_path, seq_lengths):
 
 def combine_legend_with_plot(legend_file, gf_file):
     # Open both PDFs
-    legend = fitz.open(legend_file)
-    gf = fitz.open(gf_file)
+    legend = PdfReader(legend_file)
+    gf = PdfReader(gf_file)
+    writer = PdfWriter()
 
     # Overlay the legend PDF onto the first page
-    page = legend[0]  # Modify first page
-    # page.insert_pdf(overlay)
-    page.show_pdf_page(page.rect, gf, 0)
+    legend_page = legend.pages[0]  # Modify first page
+    gf_page = gf.pages[0]
+    legend_page.merge_page(gf_page)
+    writer.add_page(legend_page)
 
     # Save the final output
-    legend.save(gf_file)
+    with open(gf_file, "wb") as output:
+        writer.write(output)
 
 
 def merge_pdfs(out_path, total_pages):

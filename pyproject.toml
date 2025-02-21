@@ -15,8 +15,7 @@ dependencies = [
     "pandas",
     "matplotlib",
     "reportlab",
-    "pypdf2",
-    "pymupdf"
+    "pypdf2"
 ]
 
 [project.scripts]
