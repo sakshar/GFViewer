@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="gfviewer",
-    version="1.0.2",
+    version="1.0.3",
     author="Sakshar Chakravarty",
     author_email="schak026@ucr.edu",
     description="A tool for visualizing the localization of multi-gene families across the genome of a given organism",
@@ -18,7 +18,7 @@ setup(
         "pypdf2",
         "openpyxl"
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.8, <3.13",  # Restrict Python version
     entry_points={
         "console_scripts": [
             "gfviewer = gfviewer.main:main"
