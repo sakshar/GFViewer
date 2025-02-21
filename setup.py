@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="gfviewer",
-    version="1.0.3",
+    version="1.0.4",
     author="Sakshar Chakravarty",
     author_email="schak026@ucr.edu",
     description="A tool for visualizing the localization of multi-gene families across the genome of a given organism",
