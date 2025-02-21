@@ -1,0 +1,6 @@
+biopython
+pandas
+matplotlib
+reportlab
+pypdf2
+pymupdf

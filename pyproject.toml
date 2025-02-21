@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gfviewer"
+version = "1.0.0"
+description = "A tool for visualizing the localization of multi-gene families across the genome of a given organism"
+authors = [{name = "Sakshar Chakravarty", email = "schak026@ucr.edu"}]
+license = {file = "LICENSE"}
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "biopython",
+    "pandas",
+    "matplotlib",
+    "reportlab",
+    "pypdf2",
+    "pymupdf"
+]
+
+[project.scripts]
+gfviewer = "gfviewer.main:main"
