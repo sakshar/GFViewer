@@ -56,12 +56,12 @@ pip install -r requirements.txt
 </pre>
 
 # Scripts
-`gfviewer/main.py` contains the source codes for GFViewer
+- `gfviewer/main.py` contains the source codes for GFViewer
 
-`test_run.sh` contains the commands to execute GFViewer on the provided sample test cases
+- `test_run.sh` contains the commands to execute GFViewer on the provided sample test cases
 
 # Required data format
-**- Gene-family Data File:** A file (.xlsx/.csv/.tsv) containing gene family and location information for each gene that must maintain the structure as follows:
+- **Gene-family Data File:** A file (.xlsx/.csv/.tsv) containing gene family and location information for each gene that must maintain the structure as follows:
 
 |  gene_id  | gene_family | chromosome | start |  end  | strand |
 |-----------|-------------|------------|-------|-------|--------|
@@ -72,14 +72,14 @@ pip install -r requirements.txt
 
 The naming convention for the header row must be followed strictly. If you want to plot the centromeres along with genes belonging to different gene-families, always put **centromere** under **gene_family** and **0** under **strand** columns.
 
-**- Genome or Chromosome-Lengths File:** A fasta (.fasta/.fna/.fa) file containing the genome sequence or a text (.txt) file containing the chromosome ids with their lengths; seq_id,seq_length per line:
+- **Genome or Chromosome-Lengths File:** A fasta (.fasta/.fna/.fa) file containing the genome sequence or a text (.txt) file containing the chromosome ids with their lengths; seq_id,seq_length per line:
 <pre>
 chr_1,length_of_chr_1
 chr_2,length_of_chr_2
 ...
 </pre>
 
-**- Color Map File:** A text (.txt) file contating the gene family (gf) ids with their color codes; gf_id,color_code or gf_id,[0,1],[0,1],[0,1] per line (RGB values):
+- **Color Map File:** A text (.txt) file contating the gene family (gf) ids with their color codes; gf_id,color_code or gf_id,[0,1],[0,1],[0,1] per line (RGB values):
 
 If assigning colors based on provided color code, structure the color map file as follows:
 <pre>
