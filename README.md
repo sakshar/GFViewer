@@ -168,6 +168,8 @@ git clone https://github.com/sakshar/GFViewer.git
 cd GFViewer
 </pre>
 
+The provided sample test cases can be found inside the `tests` directory.
+
 For test case 1:
 <pre>
 # if installed as a conda package
