@@ -195,5 +195,5 @@ gfviewer/main.py -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test
 </pre>
 This will generate the plots including the centromere for each chromosome inside `out_test_3/plot` and the colors will be assinged to each gene family based on the default color code of GFViewer in sequential order.
 
-# Citation
-Sakshar Chakravarty and Stefano Lonardi. 2025. GFViewer: A tool for visualizing the localization of multi-gene families across the genome. Journal; doi: https://doi.org/nn.nnnn/2025.nn.nn.nnnnnn
+<!-- # Citation
+Sakshar Chakravarty and Stefano Lonardi. 2025. GFViewer: A tool for visualizing the localization of multi-gene families across the genome. Journal. doi: https://doi.org/nn.nnnn/2025.nn.nn.nnnnnn -->
