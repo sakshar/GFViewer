@@ -87,6 +87,9 @@ gf_1,1
 gf_2,2
 ...
 </pre>
+
+This will assign **red** to **gf_1**, **green** to **gf_2** and so on.
+
 For color assignment of gene-families using the provided color code, refer to the following palette:
 <p align="center">
   <img src="color_guide_sample.png" alt="color guide" width="50%">
