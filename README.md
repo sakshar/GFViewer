@@ -83,8 +83,8 @@ chr_2,length_of_chr_2
 
 If assigning colors based on provided color code, structure the color map file as follows:
 <pre>
-gf_1,color_code_1
-gf_2,color_code_2
+gf_1,1
+gf_2,2
 ...
 </pre>
 For color assignment of gene-families using the provided color code, refer to the following palette:
