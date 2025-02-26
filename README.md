@@ -27,15 +27,17 @@ For installation from the source, GFViewer requires python version (>=3.8, <3.13
 For Ubuntu/Debian (using apt):
 <pre>
 sudo apt update
-sudo apt install python3.x # x = {8,9,10,11,12}
+sudo apt install python3.x 
 sudo apt install python3-pip
 </pre>
 
 For macOS (using Homebrew):
 <pre>
-brew install python@3.x # x = {8,9,10,11,12}
+brew install python@3.x
 brew install python-pip
 </pre>
+
+Here, `x = {8,9,10,11,12}`.
 
 To verify installation:
 <pre>
@@ -54,7 +56,8 @@ pip install -r requirements.txt
 </pre>
 
 # Scripts
-`gfviewer/main.py` contains the source codes for GFViewer <br>
+`gfviewer/main.py` contains the source codes for GFViewer
+
 `test_run.sh` contains the commands to execute GFViewer on the provided sample test cases
 
 # Required data format
@@ -116,7 +119,7 @@ python gfviewer/main.py [-h] -d DATA_FILE -g GENOME_FILE -o OUTPUT_DIRECTORY \
 
 Description of the different arguments and options:
 <pre>
-  required:
+required:
   -d DATA_FILE, --data_file DATA_FILE
                         A file (.xlsx/.csv/.tsv) containing gene family and location
                         information for each gene
@@ -126,7 +129,7 @@ Description of the different arguments and options:
                         lengths; seq_id,seq_length per line
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         Path to the output directory
-  optional:
+optional:
   -c COLOR_MAP_FILE, --color_map_file COLOR_MAP_FILE
                         A text (.txt) file containing the gene family (gf) ids with
                         their color codes; gf_id,color_code or
@@ -157,9 +160,9 @@ The plots are generated inside `OUTPUT_DIRECTORY/plot` and the genebank (.gb) fi
 # Example run
 To execute the sample test cases, clone the repository and move to the repository directory:
 <pre>
-  cd ~
-  git clone https://github.com/sakshar/GFViewer.git
-  cd GFViewer
+cd ~
+git clone https://github.com/sakshar/GFViewer.git
+cd GFViewer
 </pre>
 
 For test case 1:
@@ -193,4 +196,4 @@ gfviewer/main.py -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test
 This will generate the plots including the centromere for each chromosome inside `out_test_3/plot` and the colors will be assinged to each gene family based on the default color code of GFViewer in sequential order.
 
 # Citation
-- Sakshar Chakravarty and Stefano Lonardi. 2025. GFViewer: A tool for visualizing the localization of multi-gene families across the genome. Journal; doi: https://doi.org/nn.nnnn/2025.nn.nn.nnnnnn
+Sakshar Chakravarty and Stefano Lonardi. 2025. GFViewer: A tool for visualizing the localization of multi-gene families across the genome. Journal; doi: https://doi.org/nn.nnnn/2025.nn.nn.nnnnnn
