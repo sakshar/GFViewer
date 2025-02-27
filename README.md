@@ -70,7 +70,7 @@ pip install -r requirements.txt
 | ...       | ...         | ...        | ...   | ...   | ...    |
 | centro_1  | centromere  | chr_1      | 82125 | 98476 | 0      |
 
-The naming convention for the header row must be followed strictly. If you want to plot the centromeres along with genes belonging to different gene-families, always put **centromere** under **gene_family** and **0** under **strand** columns.
+The naming convention for the header row must be followed strictly. Centromere data is optional and it is required only when you want to plot them. If you want to plot the centromeres along with genes belonging to different gene-families, always put **centromere** under **gene_family** and **0** under **strand** columns.
 
 - **Genome or Chromosome-Lengths File:** A fasta (.fasta/.fna/.fa) file containing the genome sequence or a text (.txt) file containing the chromosome ids with their lengths; seq_id,seq_length per line:
 <pre>
