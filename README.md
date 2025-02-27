@@ -1,7 +1,7 @@
 <p align="center">
   <img src="logo.png" alt="logo" width="80%">
 </p>
-This repository is a stand-alone copy of GFViewer. Anyone can run GFViewer locally in their machines just by cloning this. The web-application is available at [gfviewer](http://35.192.183.4).
+This repository is a stand-alone copy of GFViewer. Anyone can run GFViewer locally in their machines just by cloning this. The web-application is available at (http://35.192.183.4).
 
 # Installation
 GFViewer can be either installed as a conda package or executed directly from the source.
