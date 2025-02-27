@@ -200,6 +200,9 @@ gfviewer/main.py -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test
 </pre>
 This will generate the plots including the centromere for each chromosome inside `out_test_3/plot` and the colors will be assinged to each gene family based on the default color code of GFViewer in sequential order.
 
+# Constraints
+At present, GFViewer can handle plotting a maximum of 19 different gene-families with the default color code where color code: `20` (grey) is reserved for centromeres.
+
 # Questions
 Email: stelo@cs.ucr.edu
 
