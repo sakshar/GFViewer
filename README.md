@@ -52,7 +52,7 @@ If you have python and pip already installed, open the terminal and follow the s
 cd ~
 git clone https://github.com/sakshar/GFViewer.git
 cd GFViewer
-pip install -r requirements.txt
+pip install --editable .
 </pre>
 
 # Scripts
@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 - `test_run.sh` contains the commands to execute GFViewer on the provided sample test cases
 
-# Required data format
+# Input files format
 - **Gene-family Data File:** A file (.xlsx/.csv/.tsv) containing gene family and location information for each gene that must maintain the structure as follows:
 
 |  gene_id  | gene_family | chromosome | start |  end  | strand |
@@ -103,18 +103,9 @@ gf_2,0.i,0.j,0.k
 </pre>
 
 # Execution
-For executing as a conda package:
+For executing either as a conda package or from the source:
 <pre>
 gfviewer [-h] -d DATA_FILE -g GENOME_FILE -o OUTPUT_DIRECTORY \
-                [-c COLOR_MAP_FILE] [-l LEGEND_LOCATION] [-or LEGEND_ORIENTATION] \
-                [-t TELOMERE_LENGTH] [-p NUMBER_OF_CHROMOSOMES_PER_PAGE] \
-                [-r NUMBER_OF_ROWS_IN_LEGENDS] [-cen] [-lpp] [-conc]
-</pre>
-
-For executing from the source, first go to the directory where you cloned the repository. For example, if you have cloned the repository in your home directory:
-<pre>
-cd ~/GFViewer
-python gfviewer/main.py [-h] -d DATA_FILE -g GENOME_FILE -o OUTPUT_DIRECTORY \
                 [-c COLOR_MAP_FILE] [-l LEGEND_LOCATION] [-or LEGEND_ORIENTATION] \
                 [-t TELOMERE_LENGTH] [-p NUMBER_OF_CHROMOSOMES_PER_PAGE] \
                 [-r NUMBER_OF_ROWS_IN_LEGENDS] [-cen] [-lpp] [-conc]
@@ -172,31 +163,19 @@ The provided sample test cases can be found inside the `tests` directory.
 
 For test case 1:
 <pre>
-# if installed as a conda package
 gfviewer -d tests/data_test_1.xlsx -g tests/chrs_test_1-2.txt -o out_test_1 -c tests/colors_test_1.txt
-
-# if executing from the source
-gfviewer/main.py -d tests/data_test_1.xlsx -g tests/chrs_test_1-2.txt -o out_test_1 -c tests/colors_test_1.txt
 </pre>
 This will generate the plots inside `out_test_1/plot` where the legends will be generated separately as `out_test_1/plot/legends.pdf`.
 
 For test case 2:
 <pre>
-# if installed as a conda package
 gfviewer -d tests/data_test_2.csv -g tests/chrs_test_1-2.txt -o out_test_2 -c tests/colors_test_2.txt -p 1 -r 1 -lpp -conc
-
-# if executing from the source
-gfviewer/main.py -d tests/data_test_2.csv -g tests/chrs_test_1-2.txt -o out_test_2 -c tests/colors_test_2.txt -p 1 -r 1 -lpp -conc
 </pre>
 This will generate the plot as a single file named `mgf.pdf` with legends arranged in a single row at the bottom inside `out_test_2/plot` where each page will contain a single chromosome.
 
 For test case 3:
 <pre>
-# if installed as a conda package
 gfviewer -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test_3 -cen -lpp
-
-# if executing from the source
-gfviewer/main.py -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test_3 -cen -lpp
 </pre>
 This will generate the plots including the centromere for each chromosome inside `out_test_3/plot` and the colors will be assinged to each gene family based on the default color code of GFViewer in sequential order.
 

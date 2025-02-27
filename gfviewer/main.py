@@ -267,6 +267,9 @@ def plot_gene_families(args):
 
     if args.color_map_file:
         color_map = get_color_maps(args.color_map_file)
+        if len(gfs) != len(list(color_map.keys())):
+            print(f"Error: Number of gene families in DATA_FILE and COLOR_MAP_FILE don't match.")
+            exit(1)
         gfs = list(color_map.keys())
     else:
         color_map = {}
