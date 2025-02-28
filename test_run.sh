@@ -1,4 +1,4 @@
-# run the following commands one-by-one to execute GFViewer on given test data sets based on your installation type
+# run the following commands one-by-one to execute GFViewer on given test data sets
 
 # test 1
 gfviewer -d tests/data_test_1.xlsx -g tests/chrs_test_1-2.txt -o out_test_1 -c tests/colors_test_1.txt
