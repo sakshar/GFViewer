@@ -24,6 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e . --no-deps        # make gfviewer / gfviewer_web importable
 
       - name: Build the example datasets (BED/GFF/GTF + synthetic)
         run: python tests/make_fixtures.py
@@ -73,7 +74,7 @@ jobs:
           /tmp/v/bin/pip install dist/gfviewer-*.whl
           /tmp/v/bin/gfviewer --version
           /tmp/v/bin/gfviewer --color-guide > /dev/null
-          python tests/make_fixtures.py
+          /tmp/v/bin/python tests/make_fixtures.py   # regenerate fixtures with the venv (has pandas)
           /tmp/v/bin/gfviewer \
             -d static/tests/synthetic/arabidopsis_10/genes.tsv \
             -g static/tests/synthetic/arabidopsis_10/genome.txt \
