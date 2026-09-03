@@ -1,4 +1,6 @@
-# GFViewer
+<p align="center">
+  <img src="static/images/logo.png" width="80%">
+</p>
 
 Visualize the localization of **multigene families** across the chromosomes of a
 genome, and quantify how those families are distributed.
