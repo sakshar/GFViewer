@@ -52,10 +52,10 @@ pipx install gfviewer</code></pre>
 python -m pip install "git+{{ links.github }}.git"
 
 # a specific release tag
-python -m pip install "git+{{ links.github }}.git@v2.0.0"</code></pre>
+python -m pip install "git+{{ links.github }}.git@v2.0.1"</code></pre>
     <p>Or download a release tarball from
        <a href="{{ links.releases }}" target="_blank" rel="noopener">the releases page</a>
-       and <code>python -m pip install gfviewer-2.0.0.tar.gz</code>.</p>
+       and <code>python -m pip install gfviewer-2.0.1.tar.gz</code>.</p>
 
     <h3>From a source checkout (editable, for development / tests / web portal)</h3>
     <pre><code>git clone {{ links.github }}.git
@@ -73,7 +73,7 @@ python -m pip install gfviewer</code></pre>
        (<code>conda env create -f environment.yml</code>).</p>
 
     <h2>3. Verify</h2>
-    <pre><code>gfviewer --version           # -> GFViewer 2.0.0
+    <pre><code>gfviewer --version           # -> GFViewer 2.0.1
 gfviewer --help              # full option list
 gfviewer --color-guide       # the built-in 20-colour palette</code></pre>
     <p>If <code>gfviewer</code> is not found even though the install succeeded,

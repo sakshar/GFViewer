@@ -7,10 +7,12 @@ name = "gfviewer"
 # Keep in sync with gfviewer/__init__.py::__version__ (tests/test_packaging.py
 # enforces this).  A dynamic attr= lookup is not used because the top-level
 # gfviewer.py shim shadows the package during setuptools' metadata build.
-version = "2.0.0"
+version = "2.0.1"
 description = "Visualize and quantify the localization of multigene families across chromosomes"
 readme = "README.md"
 requires-python = ">=3.8"
+# PEP 639 SPDX form (license = "MIT" + license-files) needs setuptools >= 77,
+# which drops Python 3.8 -- kept as the table form while 3.8 is supported.
 license = { text = "MIT" }
 authors = [
     { name = "Sakshar Chakravarty" },
@@ -69,6 +71,7 @@ gfviewer = "gfviewer.cli:main"
 
 [tool.setuptools]
 packages = ["gfviewer", "gfviewer_web"]
+license-files = ["LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

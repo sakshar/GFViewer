@@ -11,7 +11,7 @@ The package is organized as:
 * :mod:`gfviewer.cli`        -- command-line interface
 """
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 from gfviewer.errors import GFViewerError, InputValidationError  # noqa: E402
 

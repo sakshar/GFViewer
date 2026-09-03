@@ -29,8 +29,9 @@ pip install -e ".[web,dev]"               # editable, with Flask + pytest
 
 A full pip-installation and command-line walkthrough — isolated environments,
 every flag with worked examples, troubleshooting — is in
-[`docs/INSTALL.md`](docs/INSTALL.md), and is mirrored on the web portal's
-**Install** page. Build distributable artifacts with `scripts/build_wheel.sh`.
+[`docs/INSTALL.md`](https://github.com/sakshar/GFViewer/blob/main/docs/INSTALL.md),
+and is mirrored on the web portal's **Install** page. Build distributable
+artifacts with `scripts/build_wheel.sh`.
 
 ## Command line
 
@@ -92,8 +93,9 @@ format). It computes:
 * optional pairwise **co-localization** (`--colocalization`).
 
 Every per-family / per-pair / per-window test carries a Benjamini–Hochberg
-`q_value`. See `templates/help.html` (the *Downloadable outputs* section) for the
-column-by-column layout of each file.
+`q_value`. See the
+[*Downloadable outputs*](https://github.com/sakshar/GFViewer/blob/main/templates/help.html)
+section of the Help page for the column-by-column layout of each file.
 
 ## Web portal
 

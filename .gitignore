@@ -16,5 +16,9 @@ static/output/*/
 static/tests/*.zip
 static/tests/*.mgf.pdf
 
+# local-only docs (not part of the repo / release)
+docs/BIOCONDA.md
+docs/GFViewer_*.pptx
+
 # local scratch
 out/

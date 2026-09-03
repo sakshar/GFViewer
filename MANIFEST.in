@@ -8,6 +8,7 @@ include environment.yml
 include pyproject.toml
 
 recursive-include docs *.md
+exclude docs/BIOCONDA.md
 recursive-include gfviewer *.py
 recursive-include gfviewer_web *.py
 
