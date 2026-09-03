@@ -1,0 +1,12 @@
+# Normalise line endings for text; treat known binaries as binary.
+* text=auto
+
+*.fasta binary
+*.fa    binary
+*.fai   binary
+*.xlsx  binary
+*.xls   binary
+*.png   binary
+*.jpg   binary
+*.pdf   binary
+*.zip   binary

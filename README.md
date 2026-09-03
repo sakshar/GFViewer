@@ -1,189 +1,148 @@
-<p align="center">
-  <img src="logo.png" alt="logo" width="80%">
-</p>
-This repository is a stand-alone copy of GFViewer. Anyone can run GFViewer locally in their machines just by cloning this. The web-application is available at (http://gfviewer.cs.ucr.edu).
+# GFViewer
 
-# Installation
-GFViewer can be either installed as a conda package or executed directly from the source.
+Visualize the localization of **multigene families** across the chromosomes of a
+genome, and quantify how those families are distributed.
 
-# Conda installation
-You will need conda installed in your machine to proceed. If you don't have conda installed, please follow [conda installation](https://conda.io/docs/user-guide/install/). If you already had it installed, please make sure it is updated.
+GFViewer draws round-capped chromosome ideograms with each family in its own
+colour (``+`` strand above the axis, ``-`` below), optionally marks centromeres,
+and can compute localization statistics. Output is fully vector and can be saved
+as **PDF, SVG, PNG, JPG, TIFF or EPS**.
 
-Create a conda environment first:
+Version 2 rewrites the rendering engine on top of matplotlib (the old
+BioPython/`BasicChromosome` engine is kept at `gfviewer.legacy` for one
+release), removes the 19-family ceiling, adds BED / GFF3 / GTF input, a style
+system, an analytics module, and an interactive web portal.
 
-`conda create -n gfviewer_env python=3.12`
+## Install
 
-This will create a conda environment named gfviewer_env with python version 3.12. Then activate the environment with:
+```bash
+pip install gfviewer                      # the `gfviewer` command-line tool
+```
 
-`conda activate gfviewer_env`
+From a source checkout (development, tests, or the web portal):
 
-Finally, install the [gfviewer](https://anaconda.org/bioconda/gfviewer) package using the following command:
+```bash
+conda env create -f environment.yml      # or: python -m venv .venv && source .venv/bin/activate
+conda activate gfviewer
+pip install -e ".[web,dev]"               # editable, with Flask + pytest
+```
 
-`conda install bioconda::gfviewer`
+A full pip-installation and command-line walkthrough — isolated environments,
+every flag with worked examples, troubleshooting — is in
+[`docs/INSTALL.md`](docs/INSTALL.md), and is mirrored on the web portal's
+**Install** page. Build distributable artifacts with `scripts/build_wheel.sh`.
 
-# Installation from the source
-For installation from the source, GFViewer requires python version (>=3.8, <3.13) and pip installed first. If you don't have them installed, execute the following commands:
+## Command line
 
-For Ubuntu/Debian (using apt):
-<pre>
-sudo apt update
-sudo apt install python3.x 
-sudo apt install python3-pip
-</pre>
+```bash
+gfviewer -d genes.tsv -g genome.fasta -o out/ \
+         -f pdf svg png --analytics -cen \
+         --tick-style lollipop --title "My organism"
+```
 
-For macOS (using Homebrew):
-<pre>
-brew install python@3.x
-brew install python-pip
-</pre>
+Key options (`gfviewer --help` for the full list):
 
-Here, `x = {8,9,10,11,12}`.
+| Flag | Meaning |
+|------|---------|
+| `-d/--data` | one or more annotation files (`.xlsx/.csv/.tsv/.bed/.gff3/.gtf`) |
+| `-g/--genome` | FASTA, `.fai`, `chrom.sizes`, or `chrom,length` table |
+| `-c/--colors` | colour-map file (`family,index` / `family,#hex` / `family,r,g,b`) |
+| `-m/--mapping` | `gene_id,gene_family` map (single BED/GFF input) |
+| `--family-attr` | GFF3/GTF attribute that holds the family |
+| `-f/--format` | export formats |
+| `--collapse-rare` | fold infrequent families into "Other" above the 40-family cap |
+| `--style` / `--save-style` | load / write a YAML/JSON style file |
+| `--analytics` | also write per-family statistics as CSV/JSON |
+| `--no-titles` | omit titles from the exported figure and analytics-chart images |
+| `-cen` | draw centromeres |
 
-To verify installation:
-<pre>
-python --version
-pip --version
-</pre>
+### Input formats
 
-There are many other ways to install them. You can adopt any one of them at your own accord.
+* **Table** — columns `gene_id, gene_family, chromosome, start, end, strand`
+  (1-based, inclusive; header synonyms accepted). A `centromere` value in
+  `gene_family` (strand `0`) marks a centromere.
+* **BED** — 0-based half-open, converted automatically. One file → column 4 is
+  the family; several files → each file's base name is the family; one file plus
+  a mapping file → family from the map.
+* **GFF3 / GTF** — 1-based; gene-like feature types kept; family taken from
+  `--family-attr` (default search: `gene_family`, `Family`, `gene_biotype`,
+  `Name`, …).
 
-If you have python and pip already installed, open the terminal and follow the steps below:
-<pre>
-cd ~
-git clone https://github.com/sakshar/GFViewer.git
-cd GFViewer
-pip install --editable .
-</pre>
+### Analytics
 
-# Scripts
-- `gfviewer/main.py` contains the source codes for GFViewer
+`--analytics` writes `analytics_*.csv` / `.bed`, `analytics_summary.json` and
+four figures (`analytics_genes_per_family`, `analytics_positional_profile`,
+`analytics_ripley`, `analytics_family_proximity` — one per requested figure
+format). It computes:
 
-- `test_run.sh` contains the commands to execute GFViewer on the provided sample test cases
+* per-family counts split into genes on chromosomes vs. unplaced/stray contigs,
+  linear density, gene length, strand fraction;
+* permutation tests for **telomere-** and (with a centromere track)
+  **centromere-proximal** bias, plus **p-arm / q-arm** occupancy;
+* **tandem-array** detection and a **tandem / proximal / dispersed** duplication
+  mode per family;
+* **multi-scale clustering** — edge-corrected 1-D **Ripley's K/L** with a
+  permutation envelope (`--ripley-scales`);
+* **chromosome-enrichment** (binomial, per family × chromosome), **strand bias**,
+  and per-chromosome **family diversity** (Shannon / evenness);
+* a binned **positional density profile** ("metachromosome" plot);
+* a **family × family proximity matrix** with average-linkage clustering;
+* **multigene-family hotspots** — a Poisson window scan, merged and written as a
+  table and a **BED** file (`--hotspot-window`);
+* optional pairwise **co-localization** (`--colocalization`).
 
-# Input files format
-- **Gene-family Data File:** A file (.xlsx/.csv/.tsv) containing gene family and location information for each gene that must maintain the structure as follows:
+Every per-family / per-pair / per-window test carries a Benjamini–Hochberg
+`q_value`. See `templates/help.html` (the *Downloadable outputs* section) for the
+column-by-column layout of each file.
 
-|  gene_id  | gene_family | chromosome | start |  end  | strand |
-|-----------|-------------|------------|-------|-------|--------|
-| gene_1    | family_1    | chr_1      | 4031  | 15104 | -      |
-| gene_2    | family_2    | chr_2      | 24310 | 45159 | +      |
-| ...       | ...         | ...        | ...   | ...   | ...    |
-| centro_1  | centromere  | chr_1      | 82125 | 98476 | 0      |
+## Web portal
 
-The naming convention for the header row must be followed strictly. Centromere data is optional and it is required only when you want to plot them. If you want to plot the centromeres along with genes belonging to different gene-families, always put **centromere** under **gene_family** and **0** under **strand** columns.
+```bash
+# development
+python flaskapp.py                       # http://localhost:5001
 
-- **Genome or Chromosome-Lengths File:** A fasta (.fasta/.fna/.fa) file containing the genome sequence or a text (.txt) file containing the chromosome ids with their lengths; seq_id,seq_length per line:
-<pre>
-chr_1,length_of_chr_1
-chr_2,length_of_chr_2
-...
-</pre>
+# production
+gunicorn -w 1 --threads 4 -b 0.0.0.0:5001 "gfviewer_web:create_app()"
+```
 
-- **Color Map File:** A text (.txt) file contating the gene family (gf) ids with their color codes; gf_id,color_code or gf_id,[0,1],[0,1],[0,1] per line (RGB values):
+Uploads are rendered on a background thread pool behind an async job API
+(`POST /api/jobs` → `GET /api/jobs/<id>/status` → results page). The results page
+embeds the SVG with an editor for choosing which families and chromosomes to
+draw, recolouring, moving the legend and labels, changing fonts and mark style,
+toggling whether titles are baked into the image files, then re-rendering and
+exporting. Analytics figures are shown inline, and two buttons download
+**everything as a ZIP** — either as produced, or re-rendered in every figure
+format. `GET /api/health` is a readiness probe.
 
-If assigning colors based on provided color code, structure the color map file as follows:
-<pre>
-gf_1,1
-gf_2,2
-...
-</pre>
+**Usage monitor.** A privacy-respecting counter (`/stats`, or JSON at
+`/api/stats`) tracks page views, unique visitors per day (a salted daily hash —
+no IPs, cookies or other personal data are stored), jobs submitted / completed /
+failed, example-dataset runs and downloads, with a rolling ~120-day daily
+series. Counters persist to `instance/usage.json`.
 
-This will assign **red** to **gf_1**, **green** to **gf_2** and so on.
+Configuration (environment variables): `GFVIEWER_DATA_DIR`,
+`GFVIEWER_MAX_UPLOAD_MB` (25), `GFVIEWER_WORKERS` (2), `GFVIEWER_JOB_TTL_HOURS`
+(24), `GFVIEWER_USAGE_FILE`, `GFVIEWER_STATS_TOKEN` (require `?token=` on
+`/stats`), `SECRET_KEY`, `PORT`.
 
-For color assignment of gene-families using the provided color code, refer to the following palette:
-<p align="center">
-  <img src="color_guide_sample.png" alt="color guide" width="50%">
-</p>
+## Example datasets
 
-If assigning colors based on your own choice, provide the corresponding RGB values for each gene family as follows:
-<pre>
-gf_1,0.x,0.y,0.z
-gf_2,0.i,0.j,0.k
-...
-</pre>
+`python tests/make_fixtures.py` builds every bundled dataset into
+`static/tests/`: the three *Babesia* sets, the 6-family set re-expressed in
+every input format (`formats/` — BED, per-family BED, BED + mapping, GFF3, GTF),
+and two synthetic sets — 10 random gene families on the *Arabidopsis* (TAIR10)
+chromosomes and 20 on *C. elegans* (WBcel235). The web home page lists them all
+with **Run** (submits the job) and **Download** buttons, plus *Download every
+dataset (ZIP)*.
 
-# Execution
-For executing either as a conda package or from the source:
-<pre>
-gfviewer [-h] -d DATA_FILE -g GENOME_FILE -o OUTPUT_DIRECTORY \
-                [-c COLOR_MAP_FILE] [-l LEGEND_LOCATION] [-or LEGEND_ORIENTATION] \
-                [-t TELOMERE_LENGTH] [-p NUMBER_OF_CHROMOSOMES_PER_PAGE] \
-                [-r NUMBER_OF_ROWS_IN_LEGENDS] [-cen] [-lpp] [-conc]
-</pre>
+## Tests
 
-Description of the different arguments and options:
-<pre>
-required:
-  -d DATA_FILE, --data_file DATA_FILE
-                        A file (.xlsx/.csv/.tsv) containing gene family and location
-                        information for each gene
-  -g GENOME_FILE, --genome_file GENOME_FILE
-                        A fasta (.fasta/.fna/.fa) file containing the genome sequence
-                        or a text (.txt) file containing the chromosome ids with their
-                        lengths; seq_id,seq_length per line
-  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        Path to the output directory
-optional:
-  -c COLOR_MAP_FILE, --color_map_file COLOR_MAP_FILE
-                        A text (.txt) file containing the gene family (gf) ids with
-                        their color codes; gf_id,color_code or
-                        gf_id,[0,1],[0,1],[0,1] per line (default: assigns color codes to gene-families in sequential order)
-  -l LEGEND_LOCATION, --legend_location LEGEND_LOCATION
-                        Specify the location (upper/lower/left/right) of legends only
-                        when adding them to each page (default: lower)
-  -or LEGEND_ORIENTATION, --legend_orientation LEGEND_ORIENTATION
-                        Specify the orientation (horizontal/vertical) of legends only
-                        when plotting legends separately (default: horizontal)
-  -t TELOMERE_LENGTH, --telomere_length TELOMERE_LENGTH
-                        The length of telomeres in bp used in the plot (default: 10000)
-  -p NUMBER_OF_CHROMOSOMES_PER_PAGE, --number_of_chromosomes_per_page NUMBER_OF_CHROMOSOMES_PER_PAGE
-                        Number of chromosomes to be plotted per page (default: 3)
-  -r NUMBER_OF_ROWS_IN_LEGENDS, --number_of_rows_in_legends NUMBER_OF_ROWS_IN_LEGENDS
-                        Number of rows in the legends (default: 2)
-  -cen, --centromeres   Plot centromeres of the chromosomes along with multi gene
-                        families
-  -lpp, --legends_per_page
-                        Plot legends per page in the PDF
-  -conc, --concatenate_pages
-                        Concatenate the pages into a single PDF file
-  -h, --help            show this help message and exit
-</pre>
+```bash
+python tests/make_fixtures.py            # once, to build the example datasets
+pytest -q
+```
 
-The plots are generated inside `OUTPUT_DIRECTORY/plot` and the genebank (.gb) files corresponding to the provided **DATA_FILE** are stored inside `OUTPUT_DIRECTORY/tmp`.
+## Citation
 
-# Example run
-To execute the sample test cases, clone the repository and move to the repository directory:
-<pre>
-cd ~
-git clone https://github.com/sakshar/GFViewer.git
-cd GFViewer
-</pre>
-
-The provided sample test cases can be found inside the `tests` directory.
-
-For test case 1:
-<pre>
-gfviewer -d tests/data_test_1.xlsx -g tests/chrs_test_1-2.txt -o out_test_1 -c tests/colors_test_1.txt
-</pre>
-This will generate the plots inside `out_test_1/plot` where the legends will be generated separately as `out_test_1/plot/legends.pdf`.
-
-For test case 2:
-<pre>
-gfviewer -d tests/data_test_2.csv -g tests/chrs_test_1-2.txt -o out_test_2 -c tests/colors_test_2.txt -p 1 -r 1 -lpp -conc
-</pre>
-This will generate the plot as a single file named `mgf.pdf` with legends arranged in a single row at the bottom inside `out_test_2/plot` where each page will contain a single chromosome.
-
-For test case 3:
-<pre>
-gfviewer -d tests/data_test_3.tsv -g tests/chrs_test_3.fasta -o out_test_3 -cen -lpp
-</pre>
-This will generate the plots including the centromere for each chromosome inside `out_test_3/plot` and the colors will be assinged to each gene family based on the default color code of GFViewer in sequential order.
-
-# Limitations
-At present, GFViewer can handle plotting a maximum of 19 different gene-families with the default color code where color code: `20` (grey) is reserved for centromeres.
-
-# Questions
-Email: stelo@cs.ucr.edu
-
-<!-- # Citation
-Sakshar Chakravarty and Stefano Lonardi. 2025. GFViewer: A tool for visualizing the localization of multi-gene families across the genome. Journal. doi: https://doi.org/nn.nnnn/2025.nn.nn.nnnnnn -->
+Chakravarty S. & Lonardi S. *Visualizing the localization of multigene families
+with GFViewer.* Development supported by NIH grant 1-R01-AI169543-01.

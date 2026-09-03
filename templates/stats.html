@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Usage{% endblock %}
+
+{% block content %}
+<div class="doc">
+    <h1>Usage</h1>
+
+    {% if not stats %}
+    <p class="muted">Usage tracking is not enabled on this deployment.</p>
+    {% else %}
+    <p class="muted">Aggregate counters only &mdash; no IP addresses, cookies or
+        other personal data are stored. Unique visitors are counted from a salted
+        daily hash of the request that is never written to disk. Machine-readable
+        version: <a href="{{ api_url }}">{{ api_url }}</a>.</p>
+    <p class="muted">Counting since <b>{{ stats.since[:10] }}</b> &middot;
+        last updated {{ stats.updated[:19].replace('T', ' ') }} UTC.</p>
+
+    {% set t = stats.totals %}
+    <div class="stats-cards">
+        <div class="stat-card"><span class="n">{{ t.visits }}</span><span class="l">unique visitors</span></div>
+        <div class="stat-card"><span class="n">{{ t.page_views }}</span><span class="l">page views</span></div>
+        <div class="stat-card"><span class="n">{{ t.jobs_submitted }}</span><span class="l">figures requested</span></div>
+        <div class="stat-card"><span class="n">{{ t.jobs_completed }}</span><span class="l">figures completed</span></div>
+        <div class="stat-card"><span class="n">{{ t.jobs_failed }}</span><span class="l">jobs failed</span></div>
+        <div class="stat-card"><span class="n">{{ t.dataset_runs }}</span><span class="l">example-dataset runs</span></div>
+        <div class="stat-card"><span class="n">{{ t.downloads }}</span><span class="l">downloads</span></div>
+    </div>
+
+    <h2>Activity by day</h2>
+    {% set series = stats.daily %}
+    {% if series %}
+    {% set maxv = (series | map(attribute='page_views') | list + [1]) | max %}
+    <div class="usage-bars" role="img" aria-label="daily page views and visitors">
+        {% for d in series %}
+        <div class="ub-col" title="{{ d.date }} — {{ d.page_views }} views, {{ d.visits }} visitors, {{ d.jobs_submitted }} jobs">
+            <div class="ub-stack">
+                <span class="ub-bar views" style="height: {{ (100.0 * d.page_views / maxv) | round(1) }}%"></span>
+                <span class="ub-bar visits" style="height: {{ (100.0 * d.visits / maxv) | round(1) }}%"></span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="muted"><span class="ub-key views"></span> page views &nbsp;
+        <span class="ub-key visits"></span> unique visitors &nbsp;
+        (last {{ series | length }} day{{ '' if series|length == 1 else 's' }};
+        bars scaled to the busiest day, {{ maxv }} views)</p>
+    {% else %}
+    <p class="muted">No day-by-day activity recorded yet.</p>
+    {% endif %}
+
+    <h2>Most-visited pages</h2>
+    {% if stats.pages %}
+    <table>
+        <tr><th>Path</th><th class="num">Views</th></tr>
+        {% for p in stats.pages %}
+        <tr><td><code>{{ p.path }}</code></td><td class="num">{{ p.views }}</td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="muted">No page views recorded yet.</p>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

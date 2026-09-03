@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="doc">
+    <h2>About</h2>
+    <p>GFViewer visualizes the localization of <b>multigene families</b> along the
+       chromosomes of a genome and quantifies how those families are distributed.
+       Each family is drawn in its own colour along round-capped chromosome
+       ideograms &mdash; horizontally or vertically &mdash; with the
+       <code>+</code> and <code>-</code> strands on opposite sides of the axis and,
+       optionally, a cytogenetic-style centromere (p-arm, primary constriction,
+       q-arm).</p>
+
+    <h2>What this server does</h2>
+    <ul>
+        <li><b>Inputs</b> &mdash; one or more annotation files as a table
+            (<code>.xlsx</code>/<code>.csv</code>/<code>.tsv</code>),
+            <b>BED</b>, <b>GFF3</b> or <b>GTF</b>, plus a genome FASTA, a
+            <code>.fai</code>, a <code>chrom.sizes</code>, or a
+            <code>chromosome,length</code> table. An optional colour-map,
+            gene&rarr;family mapping, or reusable style file can be supplied.</li>
+        <li><b>Gene families</b> &mdash; there is no fixed limit; the first 20
+            colours are a maximally-distinct set and further colours are generated
+            automatically. A readability warning appears above ~25 families and a
+            hard cap at 40, which "collapse rare families into <i>Other</i>"
+            lifts.</li>
+        <li><b>Output</b> &mdash; publication-quality vector figures (the
+            chromosome ideogram and the analytics charts) in
+            <b>PDF, SVG, PNG, JPG, TIFF and EPS</b>, individually or as a single
+            ZIP &mdash; either as produced or re-rendered in every format.</li>
+        <li><b>Interactive editing</b> &mdash; after a figure renders you can
+            choose which families and chromosomes to draw, recolour families,
+            drag the legend and labels, change fonts, mark style, legend position
+            and orientation, toggle whether titles are baked into the exported
+            image files, then regenerate and export &mdash; without re-uploading.
+            The layout and spacing are recomputed for whatever subset is
+            kept.</li>
+        <li><b>Analytics</b> &mdash; per-family counts, density, gene length and
+            strand composition; permutation tests for telomere- and (with a
+            centromere track) centromere-proximal bias and p-/q-arm occupancy;
+            tandem-array detection and a tandem&nbsp;/&nbsp;proximal&nbsp;/&nbsp;dispersed
+            duplication mode; multi-scale (1-D Ripley's K/L) clustering;
+            per-(family&nbsp;&times;&nbsp;chromosome) enrichment; strand bias;
+            per-chromosome family diversity; a binned positional density
+            (&ldquo;metachromosome&rdquo;) profile; a family&ndash;family proximity
+            matrix with hierarchical clustering; a multigene-family hotspot scan
+            (table + BED); and optional pairwise co-localization. Every
+            per-family / per-pair / per-window test carries a
+            Benjamini&ndash;Hochberg <code>q</code>-value. All tables download as
+            CSV/JSON/BED, with four accompanying figures.</li>
+        <li><b>Usage monitor</b> &mdash; an aggregate, privacy-respecting counter
+            (<a href="{{ url_for('main.stats_page') }}">/stats</a>) records page
+            views, unique visitors per day (a salted daily hash &mdash; no IP
+            addresses, cookies or other personal data are stored), and job /
+            download counts, so we can report how widely the tool is used.</li>
+    </ul>
+    <p>The command-line tool (<code>gfviewer</code>, <code>pip install gfviewer</code>
+       &mdash; also installable from
+       <a href="https://anaconda.org/bioconda/gfviewer">bioconda</a> or the
+       <a href="https://github.com/sakshar/GFViewer">GitHub repository</a>) exposes
+       the same engine plus additional batch options; run
+       <code>gfviewer --help</code>. See the
+       <a href="{{ url_for('main.install') }}">installation guide</a>.</p>
+
+    <h2>Implementation</h2>
+    <p>The renderer and the analytics charts are built on
+       <a href="https://matplotlib.org/">matplotlib</a>; input parsing uses
+       <a href="https://biopython.org/">Biopython</a> and
+       <a href="https://pandas.pydata.org/">pandas</a>; the analytics module uses
+       only <a href="https://numpy.org/">NumPy</a> and pandas &mdash; every
+       statistical test, including the permutation nulls, the 1-D Ripley
+       estimator, the binomial and Poisson tail probabilities and the
+       Benjamini&ndash;Hochberg correction, is implemented without SciPy. The web
+       portal is a <b>Flask</b> application that runs renders in-process on a
+       background worker pool behind an asynchronous job API, so uploads are
+       validated with clear error messages and long renders never block a
+       request. The previous Biopython <code>BasicChromosome</code> engine is
+       retained as <code>gfviewer.legacy</code> for one release.</p>
+
+    <h2>Creators</h2>
+    <p>GFViewer &mdash; this web server, the GitHub repository, and the conda
+        package &mdash; was developed by
+        <a href="https://www.linkedin.com/in/sakshar-chakravarty/" target="_blank" rel="noopener">Sakshar Chakravarty</a>,
+        then a Ph.D. student in Computer Science at the
+        <a href="https://www.ucr.edu">University of California, Riverside</a>
+        (UCR) and now a Postdoctoral Associate at
+        <a href="https://weill.cornell.edu/">Weill Cornell Medicine</a>, New York.
+        Please direct inquiries to Dr.
+        <a href="https://www.cs.ucr.edu/~stelo/">Stefano Lonardi</a>, Professor,
+        Computer Science, UCR
+        (<a href="mailto:stelo@ucr.edu">stelo@ucr.edu</a>).</p>
+
+    <h2>Code and downloads</h2>
+    <ul>
+        <li>Install the CLI: <code>pip install gfviewer</code> &mdash; see the
+            <a href="{{ url_for('main.install') }}">installation &amp; command-line guide</a>
+            (<a href="{{ url_for('main.install_guide_md') }}">Markdown</a>)</li>
+        <li>PyPI: <a href="https://pypi.org/project/gfviewer/">pypi.org/project/gfviewer</a></li>
+        <li>GitHub: <a href="https://github.com/sakshar/GFViewer">github.com/sakshar/GFViewer</a>
+            &middot; <a href="https://github.com/sakshar/GFViewer/releases">release downloads</a></li>
+        <li>Conda: <a href="https://anaconda.org/bioconda/gfviewer">anaconda.org/bioconda/gfviewer</a></li>
+        <li>Example datasets: browse them on the <a href="{{ url_for('main.index') }}">home page</a>
+            or <a href="{{ url_for('main.datasets_download_all') }}" class="btn">download every dataset (ZIP)</a></li>
+    </ul>
+
+    <h2>Acknowledgments</h2>
+    <p>Development of GFViewer was supported by NIH grant 1-R01-AI169543-01.</p>
+
+    <h2>Citation</h2>
+    <p>Chakravarty S. &amp; Lonardi S. <i>Visualizing the localization of
+       multigene families with GFViewer.</i> (in revision)</p>
+
+    <h2>Licence</h2>
+    <p>GFViewer is free for all users, academic and commercial alike. Please cite
+       it in any work derived from its use.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block title %}Figure{% endblock %}
+
+{% block content %}
+<div id="gfv-result" class="result" data-job="{{ job.id }}"
+     data-status-url="{{ url_for('api.job_status', job_id=job.id) }}"
+     data-svg-url="{{ url_for('api.job_svg', job_id=job.id) }}"
+     data-restyle-url="{{ url_for('api.job_restyle', job_id=job.id) }}"
+     data-download-base="{{ url_for('api.job_download', job_id=job.id, fmt='FMT') }}"
+     data-chart-base="{{ url_for('api.job_chart', job_id=job.id, fmt='FMT') }}"
+     data-bundle-url="{{ url_for('api.job_bundle', job_id=job.id) }}"
+     data-analytics-base="{{ url_for('api.job_analytics', job_id=job.id, name='NAME') }}">
+
+    <div id="gfv-state" class="state">
+        <span class="spinner"></span>
+        <span class="state-text">Rendering your figure&hellip;</span>
+    </div>
+
+    <div id="gfv-error" class="notice error" hidden></div>
+    <div id="gfv-warnings" class="notice warn" hidden></div>
+
+    <div id="gfv-workspace" class="workspace" hidden>
+        <aside class="editor">
+            <h3>Adjust</h3>
+
+            <div class="editor-group">
+                <h4>Families</h4>
+                <label class="check fam-all">
+                    <input type="checkbox" id="gfv-fam-all" checked> Select all
+                </label>
+                <div id="gfv-fam-list" class="fam-list"></div>
+            </div>
+
+            <div class="editor-group">
+                <h4>Chromosomes</h4>
+                <label class="check fam-all">
+                    <input type="checkbox" id="gfv-chrom-all" checked> Select all
+                </label>
+                <div id="gfv-chrom-list" class="fam-list"></div>
+                <p class="muted">Uncheck to leave chromosomes out of the figure,
+                   then press Regenerate.</p>
+            </div>
+
+            <div class="editor-group">
+                <h4>Text</h4>
+                <label>Label mode
+                    <select id="gfv-label-mode">
+                        <option value="none">none</option>
+                        <option value="family">family</option>
+                        <option value="gene_id">gene id</option>
+                    </select>
+                </label>
+                <label>Label size <output id="gfv-label-size-val">6</output>
+                    <input type="range" id="gfv-label-size" min="3" max="14" step="0.5" value="6">
+                </label>
+                <label>Legend size <output id="gfv-legend-size-val">8</output>
+                    <input type="range" id="gfv-legend-size" min="4" max="16" step="0.5" value="8">
+                </label>
+                <label>Font family
+                    <select id="gfv-font">
+                        <option value="DejaVu Sans">DejaVu Sans</option>
+                        <option value="DejaVu Serif">DejaVu Serif</option>
+                        <option value="DejaVu Sans Mono">DejaVu Sans Mono</option>
+                    </select>
+                </label>
+                <label class="check"><input type="checkbox" id="gfv-show-titles" checked>
+                    Titles on image files</label>
+            </div>
+
+            <div class="editor-group">
+                <h4>Layout</h4>
+                <label>Orientation
+                    <select id="gfv-orientation">
+                        <option value="horizontal">horizontal</option>
+                        <option value="vertical">vertical</option>
+                    </select>
+                </label>
+                <label class="check"><input type="checkbox" id="gfv-show-unplaced">
+                    Also draw unplaced contigs</label>
+            </div>
+
+            <div class="editor-group">
+                <h4>Legend &amp; marks</h4>
+                <label>Legend location
+                    <select id="gfv-legend-loc">
+                        <option value="lower center">lower center</option>
+                        <option value="upper center">upper center</option>
+                        <option value="outside right">outside right</option>
+                        <option value="outside bottom">outside bottom</option>
+                        <option value="center left">center left</option>
+                        <option value="center right">center right</option>
+                        <option value="none">hidden</option>
+                    </select>
+                </label>
+                <label>Mark style
+                    <select id="gfv-tick-style">
+                        <option value="line">line</option>
+                        <option value="lollipop">lollipop</option>
+                        <option value="triangle">triangle</option>
+                    </select>
+                </label>
+                <label class="check"><input type="checkbox" id="gfv-centromeres"> Draw centromeres</label>
+            </div>
+
+            <div class="editor-actions">
+                <button id="gfv-apply" class="btn primary">Regenerate</button>
+                <button id="gfv-reset" class="btn">Reset</button>
+                <span id="gfv-apply-msg" class="msg"></span>
+            </div>
+
+            <div class="editor-group">
+                <h4>Download</h4>
+                <div class="dl-row">
+                    <a class="btn" data-fmt="pdf">PDF</a>
+                    <a class="btn" data-fmt="svg">SVG</a>
+                    <a class="btn" data-fmt="png">PNG</a>
+                    <a class="btn" data-fmt="jpg">JPG</a>
+                    <a class="btn" data-fmt="eps">EPS</a>
+                </div>
+                <p class="muted"><a id="gfv-dl-edited" href="#">Download edited SVG</a></p>
+                <div class="dl-row">
+                    <a class="btn" id="gfv-dl-bundle">All output (ZIP)</a>
+                    <a class="btn" id="gfv-dl-bundle-all">Every format (ZIP)</a>
+                </div>
+                <p class="muted">&ldquo;All output&rdquo; zips the current figure and
+                   analytics. &ldquo;Every format&rdquo; also re-renders the figure and
+                   every analytics chart as PDF, SVG, PNG, JPG and EPS first.</p>
+            </div>
+        </aside>
+
+        <section class="figure-pane">
+            <div class="figure-toolbar">
+                <button id="gfv-zoom-in" class="btn small">+</button>
+                <button id="gfv-zoom-out" class="btn small">&minus;</button>
+                <button id="gfv-zoom-reset" class="btn small">reset</button>
+                <span class="muted">drag the legend or a label to reposition it</span>
+            </div>
+            <div id="gfv-figure" class="figure-scroll"></div>
+        </section>
+    </div>
+
+    <section id="gfv-genes-section" class="card" hidden>
+        <h3>Genes per family</h3>
+        <div id="gfv-genes-chart" class="genes-chart"></div>
+        <div class="dl-row">
+            <span class="muted">Download chart:</span>
+            <a class="btn small" data-chart-fmt="pdf">PDF</a>
+            <a class="btn small" data-chart-fmt="svg">SVG</a>
+            <a class="btn small" data-chart-fmt="png">PNG</a>
+            <a class="btn small" data-chart-fmt="jpg">JPG</a>
+            <a class="btn small" data-chart-fmt="eps">EPS</a>
+            <span class="muted">&middot; table:</span>
+            <a class="btn small" data-name="analytics_genes_per_family.csv">CSV</a>
+        </div>
+    </section>
+
+    <section id="gfv-analytics-figs" class="card" hidden>
+        <h3>Analytics figures</h3>
+        <div class="an-fig" data-chart="positional_profile">
+            <h4>Positional density profile</h4>
+            <img data-chart-img alt="positional density profile" loading="lazy">
+            <div class="dl-row">
+                <span class="muted">Download:</span>
+                <a class="btn small" data-chart-fmt="pdf">PDF</a>
+                <a class="btn small" data-chart-fmt="svg">SVG</a>
+                <a class="btn small" data-chart-fmt="png">PNG</a>
+                <a class="btn small" data-chart-fmt="jpg">JPG</a>
+                <a class="btn small" data-chart-fmt="eps">EPS</a>
+                <span class="muted">&middot; table:</span>
+                <a class="btn small" data-name="analytics_positional_profile.csv">CSV</a>
+            </div>
+        </div>
+        <div class="an-fig" data-chart="ripley">
+            <h4>Multi-scale clustering (Ripley's L)</h4>
+            <img data-chart-img alt="Ripley's L curve" loading="lazy">
+            <div class="dl-row">
+                <span class="muted">Download:</span>
+                <a class="btn small" data-chart-fmt="pdf">PDF</a>
+                <a class="btn small" data-chart-fmt="svg">SVG</a>
+                <a class="btn small" data-chart-fmt="png">PNG</a>
+                <a class="btn small" data-chart-fmt="jpg">JPG</a>
+                <a class="btn small" data-chart-fmt="eps">EPS</a>
+                <span class="muted">&middot; table:</span>
+                <a class="btn small" data-name="analytics_ripley.csv">CSV</a>
+            </div>
+        </div>
+        <div class="an-fig" data-chart="family_proximity">
+            <h4>Family&ndash;family proximity</h4>
+            <img data-chart-img alt="family proximity heat map" loading="lazy">
+            <div class="dl-row">
+                <span class="muted">Download:</span>
+                <a class="btn small" data-chart-fmt="pdf">PDF</a>
+                <a class="btn small" data-chart-fmt="svg">SVG</a>
+                <a class="btn small" data-chart-fmt="png">PNG</a>
+                <a class="btn small" data-chart-fmt="jpg">JPG</a>
+                <a class="btn small" data-chart-fmt="eps">EPS</a>
+                <span class="muted">&middot; matrix:</span>
+                <a class="btn small" data-name="analytics_family_proximity.csv">CSV</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="gfv-analytics" class="card analytics" hidden>
+        <h3>Localization analytics</h3>
+        <p class="muted">Per-family counts and density, sub-telomeric enrichment,
+           permutation tests for telomere- and centromere-proximal bias,
+           tandem-array detection, tandem/proximal/dispersed duplication mode,
+           multi-scale (Ripley) clustering, chromosome enrichment, strand bias,
+           chromosome family-diversity, and multigene-family hotspots. Every
+           per-family / per-pair / per-window test carries a Benjamini&ndash;Hochberg
+           <code>q_value</code>. <b>Note:</b> the &ldquo;most clustered family&rdquo;
+           statistic only considers families with at least 3 genes.</p>
+        <div id="gfv-analytics-summary" class="analytics-summary"></div>
+        <div id="gfv-coloc"></div>
+        <p class="muted">Download tables (see the <a href="/help#outputs">Help page</a>
+           for column definitions):
+            <a data-name="analytics_family_summary.csv">family summary</a> &middot;
+            <a data-name="analytics_family_by_chromosome.csv">by chromosome</a> &middot;
+            <a data-name="analytics_gene_metrics.csv">per-gene metrics</a> &middot;
+            <a data-name="analytics_telomere_bias.csv">telomere bias</a> &middot;
+            <a data-name="analytics_centromere_bias.csv">centromere bias</a> &middot;
+            <a data-name="analytics_arm_bias.csv">arm bias</a> &middot;
+            <a data-name="analytics_tandem_arrays.csv">tandem arrays</a> &middot;
+            <a data-name="analytics_array_summary.csv">array summary</a> &middot;
+            <a data-name="analytics_duplication_modes.csv">duplication modes</a> &middot;
+            <a data-name="analytics_ripley.csv">Ripley K/L</a> &middot;
+            <a data-name="analytics_chromosome_enrichment.csv">chromosome enrichment</a> &middot;
+            <a data-name="analytics_strand_bias.csv">strand bias</a> &middot;
+            <a data-name="analytics_chromosome_richness.csv">chromosome richness</a> &middot;
+            <a data-name="analytics_positional_profile.csv">positional profile</a> &middot;
+            <a data-name="analytics_family_proximity.csv">proximity matrix</a> &middot;
+            <a data-name="analytics_hotspots.csv">hotspots</a> &middot;
+            <a data-name="analytics_hotspots.bed">hotspots (BED)</a> &middot;
+            <a data-name="analytics_colocalization.csv">co-localization</a> &middot;
+            <a data-name="analytics_summary.json">summary (JSON)</a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+{% endblock %}

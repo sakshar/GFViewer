@@ -1,0 +1,28 @@
+# Files to ship in the source distribution (sdist) built by `python -m build`.
+# The wheel contents are controlled by [tool.setuptools] in pyproject.toml.
+
+include README.md
+include LICENSE
+include requirements.txt
+include environment.yml
+include pyproject.toml
+
+recursive-include docs *.md
+recursive-include gfviewer *.py
+recursive-include gfviewer_web *.py
+
+# Web portal assets (only used when running the portal from a source checkout).
+recursive-include templates *.html
+recursive-include static *.css *.js *.png *.svg
+
+# Tests and the fixture builder.
+include flaskapp.py gfviewer.py
+recursive-include tests *.py
+include tests/*.csv tests/*.txt
+
+# Never ship generated output or large bundled datasets.
+prune static/output
+prune static/tests
+prune uploads
+prune instance
+global-exclude __pycache__ *.py[cod] .DS_Store

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GFViewer{% endblock %} &middot; GFViewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('main.index') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="GFViewer">
+        </a>
+        <nav class="site-nav">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            <a href="{{ url_for('main.help_page') }}">Help</a>
+            <a href="{{ url_for('main.install') }}">Install</a>
+            <a href="{{ url_for('main.about_us') }}">About</a>
+            <a href="https://github.com/sakshar/GFViewer" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="foot-col">
+            <p>Developed by
+                <a href="https://www.linkedin.com/in/sakshar-chakravarty/" target="_blank" rel="noopener">Sakshar Chakravarty</a>
+            </p>
+        </div>
+        <div class="foot-col foot-center">
+            <div class="foot-logos">
+                <img src="{{ url_for('static', filename='images/NIH-logo.png') }}" alt="NIH">
+                <img src="{{ url_for('static', filename='images/UCR_Icon_WhtBG.png') }}" alt="UCR">
+            </div>
+            <p>&copy; 2026 <a href="https://www.cs.ucr.edu/~stelo/">Lonardi Lab</a> &middot; Powered by Flask</p>
+        </div>
+        <div class="foot-col foot-right">
+            <p>Contact: <a href="mailto:stelo@ucr.edu">stelo@ucr.edu</a></p>
+            <p><a href="{{ url_for('main.stats_page') }}">Usage</a></p>
+        </div>
+    </footer>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

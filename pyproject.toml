@@ -1,28 +1,75 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "gfviewer"
-version = "1.0.4"
-description = "A tool for visualizing the localization of multi-gene families across the genome of a given organism"
-authors = [{name = "Sakshar Chakravarty", email = "schak026@ucr.edu"}]
-license = {file = "LICENSE"}
+# Keep in sync with gfviewer/__init__.py::__version__ (tests/test_packaging.py
+# enforces this).  A dynamic attr= lookup is not used because the top-level
+# gfviewer.py shim shadows the package during setuptools' metadata build.
+version = "2.0.0"
+description = "Visualize and quantify the localization of multigene families across chromosomes"
 readme = "README.md"
-requires-python = ">=3.8, <3.13"  # Restrict Python version
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Sakshar Chakravarty" },
+    { name = "Stefano Lonardi" },
+]
+maintainers = [
+    { name = "Stefano Lonardi", email = "stelo@ucr.edu" },
+]
+keywords = [
+    "bioinformatics", "genomics", "multigene family", "gene family",
+    "chromosome", "ideogram", "karyotype", "visualization",
+    "comparative genomics", "localization", "Ripley K",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 dependencies = [
-    "biopython",
-    "pandas",
-    "matplotlib",
-    "reportlab",
-    "pypdf2",
-    "openpyxl"
+    "biopython>=1.80",
+    "matplotlib>=3.6",
+    "pandas>=1.5",
+    "numpy>=1.22",
+    "openpyxl>=3.0",
+    "Pillow>=9.0",
+    "reportlab>=3.6",
+    "PyPDF2>=3.0",
+    "PyYAML>=6.0",
 ]
 
-[project.scripts]
-gfviewer = "gfviewer.main:main"
+[project.optional-dependencies]
+web = ["Flask>=2.2", "Werkzeug>=2.2", "gunicorn>=21.0"]
+dev = ["pytest>=7.0"]
+build = ["build>=1.0", "twine>=4.0"]
 
 [project.urls]
 Homepage = "https://github.com/sakshar/GFViewer"
 Repository = "https://github.com/sakshar/GFViewer"
+Documentation = "https://github.com/sakshar/GFViewer/blob/main/docs/INSTALL.md"
 Issues = "https://github.com/sakshar/GFViewer/issues"
+
+[project.scripts]
+gfviewer = "gfviewer.cli:main"
+
+[tool.setuptools]
+packages = ["gfviewer", "gfviewer_web"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

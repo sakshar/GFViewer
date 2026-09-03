@@ -1,1 +1,20 @@
+__pycache__/
+*.pyc
+.pytest_cache/
 .DS_Store
+.idea/
+*.egg-info/
+build/
+dist/
+
+# runtime job storage
+instance/
+uploads/*/
+static/output/*/
+
+# legacy demo artifacts (v2 ignores these; not needed by the code or tests)
+static/tests/*.zip
+static/tests/*.mgf.pdf
+
+# local scratch
+out/

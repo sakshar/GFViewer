@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Help{% endblock %}
+
+{% block content %}
+<div class="doc">
+    <h1>User guide</h1>
+
+    <h2>1. Upload annotation file(s)</h2>
+    <p>GFViewer accepts any mix of the following (detected automatically):</p>
+
+    <h3>Table &mdash; <code>.xlsx</code> / <code>.csv</code> / <code>.tsv</code></h3>
+    <p>One row per gene, 1-based inclusive coordinates. Header names are matched
+       case-insensitively and common synonyms are accepted
+       (<code>id</code>, <code>family</code>, <code>chrom</code>, &hellip;).</p>
+    <table>
+        <tr><th>gene_id</th><th>gene_family</th><th>chromosome</th><th>start</th><th>end</th><th>strand</th></tr>
+        <tr><td>gene_1</td><td>family_1</td><td>chr_1</td><td>4031</td><td>15104</td><td>&minus;</td></tr>
+        <tr><td>centro_1</td><td>centromere</td><td>chr_1</td><td>82125</td><td>98476</td><td>0</td></tr>
+    </table>
+    <p>Put <code>centromere</code> in <code>gene_family</code> (strand <code>0</code>)
+       for centromere rows; they are drawn only when &ldquo;Draw centromeres&rdquo; is on.</p>
+
+    <h3>BED &mdash; <code>.bed</code></h3>
+    <p>Standard 0-based half-open BED3&ndash;BED12; coordinates are converted for you.
+       Family assignment:</p>
+    <ul>
+        <li><b>One BED file</b> &rarr; column 4 (<code>name</code>) is the gene family.</li>
+        <li><b>Several BED files</b> &rarr; each file&rsquo;s base name is the family
+            (column 4 becomes the gene id).</li>
+        <li><b>One BED + a mapping file</b> (<code>gene_id,gene_family</code> per line)
+            &rarr; family looked up from the map.</li>
+    </ul>
+
+    <h3>GFF3 / GTF &mdash; <code>.gff3</code> / <code>.gtf</code></h3>
+    <p>1-based inclusive. Gene-like feature types are kept
+       (<code>gene</code>, <code>pseudogene</code>, <code>mRNA</code>, <code>transcript</code>).
+       The family is read from an attribute &mdash; by default GFViewer looks for
+       <code>gene_family</code>, <code>Family</code>, <code>gene_biotype</code>, <code>Name</code>&hellip;;
+       override it with the &ldquo;GFF/GTF family attribute&rdquo; box. Feature types
+       named <code>centromere</code> are treated as centromeres.</p>
+
+    <h2>2. Upload a genome</h2>
+    <p>A FASTA (<code>.fasta</code>/<code>.fa</code>/<code>.fna</code>), a
+       <code>.fai</code> index, a UCSC <code>chrom.sizes</code>, or a plain
+       <code>chromosome,length</code> table. Chromosome identifiers must match the
+       annotation exactly.</p>
+
+    <h2>3. Colours</h2>
+    <p>The first 20 colours are a fixed, maximally-distinct set; beyond that they
+       are generated automatically. A readability warning appears above ~25
+       families and a hard limit applies at 40 &mdash; enable
+       <b>Collapse rare families</b> to fold the least frequent into a single
+       &ldquo;Other&rdquo; category. Supply a colour-map file to override:</p>
+    <pre><code>MGF1,1            # palette index 1-20
+MGF2,#1b9e77      # hex
+MGF3,0.2,0.6,0.9  # RGB 0-1 (or 0-255)</code></pre>
+
+    <h2>4. Refine and export</h2>
+    <p>After the figure renders you can recolour families and pick which
+       <b>families</b> and <b>chromosomes</b> to include (each has its own tick
+       plus a <i>Select all</i>); de-selected families also drop out of the
+       legend. Move the legend and labels, change fonts and mark style, then
+       <b>Regenerate</b> for a clean re-render &mdash; the layout and spacing are
+       recomputed for whatever subset you keep. Export to PDF, SVG, PNG, JPG or
+       EPS. Save a <b>style file</b> from the command line
+       (<code>gfviewer --save-style style.yaml &hellip;</code>) and re-upload it to
+       reproduce a look.</p>
+    <p><b>Titles on image files.</b> By default the exported chromosome figure
+       carries the title you typed, and each analytics chart carries its built-in
+       heading (&ldquo;Genes per family&rdquo;, &ldquo;Positional density
+       profile&rdquo;, &hellip;). Untick <b>&ldquo;Bake titles into the image
+       files&rdquo;</b> on the form (or <b>&ldquo;Titles on image files&rdquo;</b>
+       in the editor, then Regenerate) to write the figures with no title text at
+       all &mdash; handy when the figure will sit under its own caption in a
+       manuscript. On the command line this is <code>--no-titles</code>.</p>
+
+    <h2>Analytics</h2>
+    <p>When analytics is enabled, GFViewer computes a battery of quantitative
+       tests on the placed genes. Every per-family, per-pair and per-window test
+       carries a raw p-value <em>and</em> a Benjamini&ndash;Hochberg
+       <code>q_value</code> (false-discovery-rate); a <code>significant_fdr</code>
+       flag marks rows with <code>q_value &le; &alpha;</code> (default
+       &alpha;&nbsp;=&nbsp;0.05). All permutation nulls re-place a family's genes
+       uniformly at random along the <em>same</em> chromosomes, keeping the
+       per-chromosome count and the gene lengths fixed.</p>
+    <ul>
+        <li><b>Telomere-proximity test</b> &mdash; per family, is the mean
+            normalised distance to the nearer chromosome end smaller (telomere-
+            proximal) or larger (interior) than the permutation null?</li>
+        <li><b>Centromere-proximity test</b> &amp; <b>arm bias</b> &mdash; only
+            when a centromere track is supplied. The first is the centromere
+            analogue of the telomere test; the second is a binomial test of
+            p-arm vs. q-arm gene counts against the arm-length ratio of the
+            chromosomes the family occupies.</li>
+        <li><b>Tandem arrays</b> &mdash; runs of &ge;&nbsp;2 same-family genes
+            separated by &le; <code>--cluster-gap</code> (50&nbsp;kb). Reported
+            per array and summarised per family (<code>frac_clustered</code>).</li>
+        <li><b>Duplication mode</b> &mdash; each gene is labelled
+            <code>tandem</code> (nearest same-family paralogue on the chromosome
+            within <code>--cluster-gap</code>), <code>proximal</code> (within
+            <code>--proximal-window</code>, default 5&times; the cluster gap) or
+            <code>dispersed</code>; aggregated to per-family fractions and a
+            predominant mode.</li>
+        <li><b>Multi-scale clustering &mdash; 1-D Ripley's K/L</b> &mdash; for
+            families with &ge;&nbsp;5 placed genes, the edge-corrected 1-D
+            Ripley K is estimated at a ladder of scales (1&nbsp;kb&hellip;1&nbsp;Mb),
+            pooled across chromosomes and converted to
+            <code>L(t)&nbsp;&minus;&nbsp;t</code>. Positive means clustered at
+            that scale, negative means over-dispersed; a permutation envelope and
+            FDR-corrected p-values say where it is significant. The
+            <em>peak</em> scale is the family's characteristic clustering
+            distance.</li>
+        <li><b>Chromosome enrichment</b> &mdash; per (family, chromosome), a
+            binomial test of the observed gene count against the count expected
+            if the family were spread over the genome in proportion to
+            chromosome length. FDR across all cells; <code>enriched</code> /
+            <code>depleted</code> flags.</li>
+        <li><b>Strand bias</b> &mdash; per family, binomial test of the
+            <code>+</code>/<code>&minus;</code> split against 0.5.</li>
+        <li><b>Chromosome richness</b> &mdash; per chromosome, the number of
+            distinct families, Shannon diversity and evenness of the family
+            composition, and the dominant family.</li>
+        <li><b>Positional density profile</b> (&ldquo;metachromosome&rdquo;
+            plot) &mdash; each gene's midpoint is expressed as a fraction of its
+            chromosome length (0&nbsp;=&nbsp;start telomere, 0.5&nbsp;=&nbsp;centre,
+            1&nbsp;=&nbsp;end telomere) and binned; the table / figure show each
+            family's density along that axis, plus a pooled &ldquo;all
+            families&rdquo; curve and the uniform reference.</li>
+        <li><b>Family&ndash;family proximity</b> &mdash; a family&nbsp;&times;&nbsp;family
+            matrix of the mean distance from a gene of A to the nearest gene of B
+            on the same chromosome (symmetrised; the diagonal is the within-family
+            nearest-neighbour distance). Families are ordered and grouped by
+            average-linkage hierarchical clustering &mdash; the blocks are sets of
+            families that tend to sit together.</li>
+        <li><b>Multigene-family hotspots</b> &mdash; a sliding window
+            (<code>--hotspot-window</code>, 100&nbsp;kb) scans each chromosome for
+            an excess of multigene-family genes (all families pooled) over a
+            uniform Poisson expectation; FDR-significant windows are merged into
+            regions and written both as a table and as a <b>BED</b> file.</li>
+        <li><b>Pairwise co-localization</b> (optional, <code>--colocalization</code>)
+            &mdash; for every family pair (A, B), how many genes of A lie within
+            the co-localization window (50&nbsp;kb) of a gene of B on the same
+            chromosome, vs. the permutation null. Off by default because it is
+            <i>O(families&sup2;)</i> pairs &times; hundreds of permutations with a
+            per-gene inner loop &mdash; minutes for a large genome, versus a
+            fraction of a second for the vectorised per-family tests.</li>
+    </ul>
+    <p>The &ldquo;most clustered family&rdquo; headline statistic is restricted
+       to families with at least 3 genes, since a 2-gene family is trivially
+       100&nbsp;% clustered. Genes on <b>unplaced / stray contigs</b> are counted
+       in <code>genes_per_family</code> but excluded from every chromosome-level
+       test, and are not drawn unless &ldquo;Also draw unplaced contigs&rdquo; is
+       ticked.</p>
+
+    <h2 id="outputs">Downloadable outputs</h2>
+    <p>The results page offers a <b>&ldquo;All output (ZIP)&rdquo;</b> button
+       (everything currently produced) and a <b>&ldquo;Every format
+       (ZIP)&rdquo;</b> button (re-renders the chromosome figure and every
+       analytics chart as PDF, SVG, PNG, JPG and EPS first). Individual files:</p>
+
+    <h3>Figures</h3>
+    <table>
+        <tr><th>File</th><th>Contents</th></tr>
+        <tr><td><code>gfviewer.&lt;fmt&gt;</code></td><td>the chromosome ideogram
+            (<code>.p1</code>, <code>.p2</code>&hellip; suffixes for multi-page
+            output; a single multi-page <code>.pdf</code>). <code>fmt</code> &isin;
+            pdf, svg, png, jpg, eps.</td></tr>
+        <tr><td><code>analytics_genes_per_family.&lt;fmt&gt;</code></td><td>stacked
+            bar chart: genes on chromosomes vs. on unplaced contigs, per family.</td></tr>
+        <tr><td><code>analytics_positional_profile.&lt;fmt&gt;</code></td><td>the
+            metachromosome density profile (one line per family + pooled).</td></tr>
+        <tr><td><code>analytics_ripley.&lt;fmt&gt;</code></td><td>Ripley's
+            <code>L(t) &minus; t</code> vs. scale, one line per family; filled
+            markers are FDR-significant scales.</td></tr>
+        <tr><td><code>analytics_family_proximity.&lt;fmt&gt;</code></td><td>the
+            family&ndash;family proximity heat map, clustered ordering, cluster
+            blocks outlined.</td></tr>
+    </table>
+
+    <h3>Tables (CSV, one header row; <code>analytics_summary.json</code> is a
+        nested object)</h3>
+    <table>
+        <tr><th>File</th><th>One row per&hellip;</th><th>Key columns</th></tr>
+        <tr><td><code>analytics_genes_per_family.csv</code></td><td>family</td>
+            <td><code>gene_family, on_chromosomes, on_unplaced, total</code></td></tr>
+        <tr><td><code>analytics_family_summary.csv</code></td><td>family</td>
+            <td><code>n_genes, n_chromosomes, mean/median_gene_length,
+            n_subtelomeric, frac_subtelomeric, mean_norm_dist_to_telomere,
+            frac_plus_strand, genes_per_mb_genome, n_on_chromosomes,
+            n_on_unplaced</code></td></tr>
+        <tr><td><code>analytics_family_by_chromosome.csv</code></td><td>family &times; chromosome</td>
+            <td><code>n_genes, first_start, last_end, span_bp, chrom_length,
+            density_per_mb, n_subtelomeric</code></td></tr>
+        <tr><td><code>analytics_gene_metrics.csv</code></td><td>gene</td>
+            <td><code>gene_id, gene_family, chromosome, start, end, strand, mid,
+            length, dist_to_telomere, norm_dist_to_telomere, subtelomeric,
+            dup_mode</code> and, with centromeres, <code>dist_to_centromere,
+            norm_dist_to_centromere, arm</code></td></tr>
+        <tr><td><code>analytics_telomere_bias.csv</code></td><td>family</td>
+            <td><code>n_genes, observed_mean_norm_dist, null_mean_norm_dist,
+            null_sd, p_toward_telomere, p_toward_interior, direction,
+            q_value, significant, significant_fdr, n_permutations</code></td></tr>
+        <tr><td><code>analytics_centromere_bias.csv</code></td><td>family
+            (centromere track only)</td>
+            <td><code>n_genes, observed/null_mean_norm_dist_cen, direction
+            (pericentromeric / centromere-distal), p_pericentromeric, p_distal,
+            q_value, significant_fdr</code></td></tr>
+        <tr><td><code>analytics_arm_bias.csv</code></td><td>family
+            (centromere track only)</td>
+            <td><code>n_p_arm, n_q_arm, expected_frac_p, observed_frac_p,
+            p_value, q_value, biased_toward_arm, significant_fdr</code></td></tr>
+        <tr><td><code>analytics_tandem_arrays.csv</code></td><td>tandem array</td>
+            <td><code>gene_family, chromosome, start, end, n_genes, span_bp,
+            gene_ids</code> (<code>;</code>-joined)</td></tr>
+        <tr><td><code>analytics_array_summary.csv</code></td><td>family</td>
+            <td><code>n_genes, n_tandem_arrays, genes_in_arrays, frac_clustered,
+            largest_array</code></td></tr>
+        <tr><td><code>analytics_duplication_modes.csv</code></td><td>family</td>
+            <td><code>n_tandem, n_proximal, n_dispersed, n_genes,
+            frac_tandem, frac_proximal, frac_dispersed, predominant_mode</code></td></tr>
+        <tr><td><code>analytics_ripley.csv</code></td><td>family &times; scale</td>
+            <td><code>scale_bp, L_minus_t_obs, L_minus_t_null_mean, env_lo,
+            env_hi, p_clustered, p_dispersed, pattern, q_clustered,
+            significant_fdr</code></td></tr>
+        <tr><td><code>analytics_chromosome_enrichment.csv</code></td><td>family &times; chromosome</td>
+            <td><code>observed, expected, log2_obs_over_exp, p_value, q_value,
+            enriched, depleted</code></td></tr>
+        <tr><td><code>analytics_strand_bias.csv</code></td><td>family</td>
+            <td><code>n_plus, n_minus, frac_plus, p_value, q_value,
+            biased_toward, significant_fdr</code></td></tr>
+        <tr><td><code>analytics_chromosome_richness.csv</code></td><td>chromosome</td>
+            <td><code>chrom_length_bp, n_genes, n_families, shannon_diversity,
+            evenness, dominant_family, dominant_family_frac, genes_per_mb</code></td></tr>
+        <tr><td><code>analytics_positional_profile.csv</code></td><td>family &times; bin
+            (plus a <code>(all families)</code> series)</td>
+            <td><code>bin, bin_center (0&ndash;1), n_genes, frac_of_family</code></td></tr>
+        <tr><td><code>analytics_family_proximity.csv</code></td><td>family
+            (square matrix; first column is the family index)</td>
+            <td>cell = mean cross-nearest-neighbour distance in bp; diagonal =
+            within-family nearest-neighbour distance</td></tr>
+        <tr><td><code>analytics_hotspots.csv</code></td><td>merged hotspot region</td>
+            <td><code>hotspot_id, chromosome, start, end, length_bp, n_genes,
+            n_families, families, genes_per_mb, min_q_value</code></td></tr>
+        <tr><td><code>analytics_hotspots.bed</code></td><td>hotspot region (BED6)</td>
+            <td><code>chrom, start (0-based), end, name
+            (<code>hotspot_n;n=&hellip;;fam=&hellip;</code>), score
+            (<code>min(1000, &minus;10&thinsp;log10&thinsp;q)</code>), strand
+            (<code>.</code>)</code></td></tr>
+        <tr><td><code>analytics_colocalization.csv</code></td><td>family pair
+            (with <code>--colocalization</code>)</td>
+            <td><code>family_a, family_b, observed_close_pairs, null_mean,
+            p_value, q_value, significant, significant_fdr</code></td></tr>
+        <tr><td><code>analytics_summary.json</code></td><td>&mdash;</td>
+            <td>genome / family / chromosome counts, the headline families
+            (largest, densest, most clustered), and JSON versions of the
+            telomere-bias, centromere-bias, arm-bias, duplication-mode,
+            Ripley-clustering, chromosome-enrichment hits, strand-biased
+            families, hotspot regions and family-proximity clusters.</td></tr>
+    </table>
+
+    <h2 id="command-line">Command line</h2>
+    <p>Everything on this page is also available as the pip-installable
+       <code>gfviewer</code> command &mdash; the same engine, plus batch options
+       for scripting:</p>
+    <pre><code>python -m pip install gfviewer
+gfviewer -d genes.csv -g genome.fasta -o out/ --analytics -cen
+gfviewer --help</code></pre>
+    <p>See the
+       <a href="{{ url_for('main.install') }}">installation &amp; command-line
+       guide</a> for isolated-environment setup, every flag with worked
+       examples, and troubleshooting. Direct links:
+       <a href="{{ links.pypi }}" target="_blank" rel="noopener">PyPI</a> &middot;
+       <a href="{{ links.github }}" target="_blank" rel="noopener">GitHub source</a> &middot;
+       <a href="{{ links.releases }}" target="_blank" rel="noopener">release downloads</a> &middot;
+       <a href="{{ url_for('main.install_guide_md') }}">guide as Markdown</a>.</p>
+</div>
+{% endblock %}

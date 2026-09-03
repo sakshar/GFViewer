@@ -1,6 +1,18 @@
-biopython
-pandas
-matplotlib
-reportlab
-pypdf2
-openpyxl
+# GFViewer runtime dependencies
+biopython>=1.80,<2
+matplotlib>=3.6,<4
+pandas>=1.5,<3
+numpy>=1.22
+openpyxl>=3.0
+Pillow>=9.0
+reportlab>=3.6
+PyPDF2>=3.0
+PyYAML>=6.0
+
+# web portal
+Flask>=2.2,<4
+Werkzeug>=2.2,<4
+gunicorn>=21.0
+
+# development / tests
+pytest>=7.0

@@ -5,6 +5,7 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 import pandas as pd
 import math
 import os
+import sys
 import argparse
 from reportlab.lib.units import cm
 import PyPDF2
@@ -12,6 +13,7 @@ from PyPDF2 import PdfReader, PdfWriter
 from Bio.Graphics import BasicChromosome
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 
 color_code = {0: (round(230 / 255, 2), round(25 / 255, 2), round(75 / 255, 2)),
@@ -99,7 +101,7 @@ def get_color_maps(in_file):
             tokens = line.strip().split(',')
             if len(tokens) not in [2, 4]:
                 print(
-                    f"Error: Color file is in invalid format. Requires <gf_id>,<color_code> or <gf_id>,<[0,1]>,<[0,1]>,<[0,1]> per line")
+                    f"Error: Color file is in invalid format. Requires <gf_id>,<color_code> or <gf_id>,<[0,1]>,<[0,1]>,<[0,1]> per line", file=sys.stderr)
                 exit(1)
             elif len(tokens) == 2:
                 color_map[tokens[0]] = color_code[int(tokens[1]) - 1]
@@ -268,7 +270,7 @@ def plot_gene_families(args):
     if args.color_map_file:
         color_map = get_color_maps(args.color_map_file)
         if len(gfs) != len(list(color_map.keys())):
-            print(f"Error: Number of gene families in DATA_FILE and COLOR_MAP_FILE don't match.")
+            print(f"Error: Number of gene families in DATA_FILE and COLOR_MAP_FILE don't match.", file=sys.stderr)
             exit(1)
         gfs = list(color_map.keys())
     else:
@@ -279,7 +281,7 @@ def plot_gene_families(args):
             index += 1
 
     if len(gfs) > max_gfs:
-        print(f"Error: Number of gene families exceeds limit.")
+        print(f"Error: Number of gene families exceeds limit.", file=sys.stderr)
         exit(1)
 
     legend_file = plot_path + "/legends.pdf"
@@ -349,6 +351,9 @@ def plot_gene_families(args):
 
     print(f"Multi-gene families are successfully plotted inside: {plot_path}")
 
+    with open(args.output_directory + '/completion_time.txt', 'w') as f_complete:
+        f_complete.write(str(datetime.now().replace(microsecond=0)))
+
 
 def parse_arguments():
     # Create a parser
@@ -387,21 +392,21 @@ def parse_arguments():
 
     # Ensure the required files exist and output directory is valid
     if not args.data_file:
-        print(f"Error: Data file is required.")
+        print(f"Error: Data file is required.", file=sys.stderr)
         exit(1)
     if not args.genome_file:
-        print(f"Error: Genome file is required.")
+        print(f"Error: Genome file is required.", file=sys.stderr)
         exit(1)
     if not args.output_directory:
-        print(f"Error: Output directory is required.")
+        print(f"Error: Output directory is required.", file=sys.stderr)
         exit(1)
 
     if not os.path.isfile(args.data_file):
-        print(f"Error: Data file '{args.data_file}' does not exist.")
+        print(f"Error: Data file '{args.data_file}' does not exist.", file=sys.stderr)
         exit(1)
 
     if not os.path.isfile(args.genome_file):
-        print(f"Error: Genome file '{args.genome_file}' does not exist.")
+        print(f"Error: Genome file '{args.genome_file}' does not exist.", file=sys.stderr)
         exit(1)
 
     if args.color_map_file and not os.path.isfile(args.color_map_file):

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Install{% endblock %}
+
+{% block content %}
+<div class="doc">
+    <h1>Install the GFViewer command-line tool</h1>
+    <p>GFViewer ships a single console command, <code>gfviewer</code>, that turns
+       gene coordinates plus a genome into publication-quality chromosome
+       ideograms and a battery of localization statistics. This page covers
+       installing it with <code>pip</code> and running it from a terminal.</p>
+
+    <div class="dl-links">
+        <a class="btn primary" href="{{ links.pypi }}" target="_blank" rel="noopener">PyPI project page</a>
+        <a class="btn" href="{{ links.github }}" target="_blank" rel="noopener">Source (GitHub)</a>
+        <a class="btn" href="{{ links.releases }}" target="_blank" rel="noopener">Release downloads</a>
+        <a class="btn" href="{{ url_for('main.install_guide_md') }}">Guide as Markdown</a>
+        <a class="btn" href="{{ datasets_zip }}">Example datasets (ZIP)</a>
+    </div>
+
+    <h2>1. Requirements</h2>
+    <table>
+        <tr><th>Python</th><td>3.8 &ndash; 3.12 (CPython)</td></tr>
+        <tr><th>pip</th><td>21.3 or newer &mdash; <code>python -m pip install --upgrade pip</code></td></tr>
+        <tr><th>OS</th><td>Linux, macOS, Windows</td></tr>
+        <tr><th>Compiler</th><td>none &mdash; every dependency installs from a pre-built wheel</td></tr>
+    </table>
+    <p>Installing <code>gfviewer</code> pulls in Biopython, matplotlib, pandas,
+       NumPy, openpyxl, Pillow, reportlab, PyPDF2 and PyYAML. The Flask web
+       portal is an <b>optional</b> extra and is not needed for the command
+       line.</p>
+
+    <h2>2. Install</h2>
+
+    <h3>From PyPI (recommended)</h3>
+    <pre><code>python -m pip install --upgrade pip
+python -m pip install gfviewer</code></pre>
+    <p>This installs the library and puts the <code>gfviewer</code> executable on
+       your <code>PATH</code>.</p>
+
+    <h3>Isolated environment (safest)</h3>
+    <pre><code># venv (standard library)
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install gfviewer
+
+# or, one isolated command:
+pipx install gfviewer</code></pre>
+
+    <h3>From GitHub</h3>
+    <pre><code># latest development version
+python -m pip install "git+{{ links.github }}.git"
+
+# a specific release tag
+python -m pip install "git+{{ links.github }}.git@v2.0.0"</code></pre>
+    <p>Or download a release tarball from
+       <a href="{{ links.releases }}" target="_blank" rel="noopener">the releases page</a>
+       and <code>python -m pip install gfviewer-2.0.0.tar.gz</code>.</p>
+
+    <h3>From a source checkout (editable, for development / tests / web portal)</h3>
+    <pre><code>git clone {{ links.github }}.git
+cd GFViewer
+python -m pip install -e .            # CLI only
+python -m pip install -e ".[web]"     # + Flask web portal
+python -m pip install -e ".[dev]"     # + pytest</code></pre>
+
+    <h3>With conda / mamba</h3>
+    <pre><code>conda create -n gfviewer -c conda-forge python=3.11 \
+    biopython matplotlib pandas numpy openpyxl pillow reportlab pypdf2 pyyaml
+conda activate gfviewer
+python -m pip install gfviewer</code></pre>
+    <p>A ready-made spec is in <code>environment.yml</code>
+       (<code>conda env create -f environment.yml</code>).</p>
+
+    <h2>3. Verify</h2>
+    <pre><code>gfviewer --version           # -> GFViewer 2.0.0
+gfviewer --help              # full option list
+gfviewer --color-guide       # the built-in 20-colour palette</code></pre>
+    <p>If <code>gfviewer</code> is not found even though the install succeeded,
+       your Python scripts directory is not on <code>PATH</code> &mdash; call it
+       through the interpreter with <code>python -m gfviewer.cli --version</code>,
+       or add the <code>bin</code>/<code>Scripts</code> folder under
+       <code>python -m site --user-base</code> to <code>PATH</code>.
+       <code>pipx</code> avoids this entirely.</p>
+
+    <h2>4. Upgrade / uninstall</h2>
+    <pre><code>python -m pip install --upgrade gfviewer
+python -m pip show gfviewer
+python -m pip uninstall gfviewer</code></pre>
+
+    <h2>5. Run from the command line</h2>
+    <p><b>Synopsis</b></p>
+    <pre><code>gfviewer -d DATA [DATA ...] -g GENOME -o OUTDIR [options]</code></pre>
+    <p><code>-d/--data</code>, <code>-g/--genome</code> and
+       <code>-o/--output</code> are required for a render;
+       <code>--color-guide</code> and <code>--save-style</code> are the only
+       actions that do not need them.</p>
+
+    <p><b>Common invocations</b></p>
+    <pre><code># minimal render (PDF + SVG are always produced)
+gfviewer -d genes.csv -g genome.fasta -o out/
+
+# extra formats and a title
+gfviewer -d genes.csv -g chrom.sizes -o out/ -f pdf svg png jpg eps --title "A. thaliana"
+
+# centromeres, vertical layout, lollipop marks, one label per cluster
+gfviewer -d genes.tsv -g genome.fai -o out/ \
+         -cen --orientation vertical --tick-style lollipop --label-mode family
+
+# full analytics with a fixed permutation seed
+gfviewer -d genes.csv -g genome.fasta -o out/ --analytics --permutations 1000 --seed 42 -cen
+
+# analytics only, no figure
+gfviewer -d genes.csv -g genome.fasta -o out/ --analytics-only
+
+# several BED files -> one family per file
+gfviewer -d families/*.bed -g genome.fasta -o out/
+
+# one BED + an explicit gene->family map
+gfviewer -d all_genes.bed -m gene_to_family.tsv -g genome.fasta -o out/
+
+# GFF3 with the family in a custom attribute
+gfviewer -d annotation.gff3 -g genome.fasta -o out/ --family-attr locus_type
+
+# many families: fold rare ones into "Other" above the 40-family cap
+gfviewer -d big.csv -g genome.fasta -o out/ --collapse-rare --keep MGF1 MGF7
+
+# save a style and reuse it
+gfviewer -d genes.csv -g genome.fasta -o out/ --tick-style triangle --save-style mystyle.yaml
+gfviewer -d other.csv -g other.fasta -o out2/ --style mystyle.yaml</code></pre>
+
+    <p><b>Input files</b></p>
+    <table>
+        <tr><th>Type</th><th>Extensions</th><th>Coordinates</th><th>Family from</th></tr>
+        <tr><td>Table</td><td><code>.xlsx .xls .csv .tsv .txt</code></td>
+            <td>1-based, inclusive</td><td><code>gene_family</code> column</td></tr>
+        <tr><td>BED</td><td><code>.bed</code> (<code>.gz</code> ok)</td>
+            <td>0-based, half-open</td>
+            <td>column 4 &mdash; <i>or</i> the file base name (several files)
+                &mdash; <i>or</i> <code>-m</code> mapping</td></tr>
+        <tr><td>GFF3 / GTF</td><td><code>.gff .gff3 .gtf</code></td>
+            <td>1-based, inclusive</td>
+            <td><code>--family-attr</code> (default search:
+                <code>gene_family</code>, <code>Family</code>,
+                <code>gene_biotype</code>, <code>Name</code>, &hellip;)</td></tr>
+    </table>
+    <p>Table columns (case-insensitive, synonyms accepted):
+       <code>gene_id, gene_family, chromosome, start, end, strand</code>. A row
+       whose <code>gene_family</code> is <code>centromere</code> and
+       <code>strand</code> is <code>0</code> marks a centromere. The genome
+       (<code>-g</code>) is a FASTA, a <code>.fai</code>, a
+       <code>chrom.sizes</code>, or a <code>chromosome,length</code> table;
+       names must match the annotation exactly.</p>
+
+    <p><b>Option groups</b> (run <code>gfviewer --help</code> for the full list):
+       <i>input / output</i> (<code>-d -g -o -c -m --family-attr --id-attr
+       --gff-types --basename -f --on-unknown-chrom --coord-bounds</code>),
+       <i>gene families</i> (<code>--collapse-rare --keep</code>),
+       <i>analytics</i> (<code>--analytics --analytics-only
+       --subtelomere-fraction --subtelomere-bp --cluster-gap --proximal-window
+       --ripley-scales --hotspot-window --hotspot-step --proximity-clusters
+       --permutations --seed --colocalization</code>) and
+       <i>style</i> (<code>--style --save-style --orientation -t -p --columns
+       --row-height --length-cm --single-page --show-unplaced --title --subtitle
+       --dpi --page-size --background --tick-style --no-split-strand -cen
+       --label-mode --label-size --font -l --legend-columns --legend-size
+       --legend-title --legend-frame --legend-separate-page --no-legend</code>).</p>
+
+    <p><b>What gets written</b> into <code>OUTDIR/</code>: the ideogram as
+       <code>gfviewer.pdf</code>, <code>gfviewer.svg</code> and any extra
+       <code>-f</code> formats (multi-page raster/SVG get <code>.p1</code>,
+       <code>.p2</code>&hellip; suffixes; PDF stays one file). With
+       <code>--analytics</code> you also get <code>analytics_*.csv</code>,
+       <code>analytics_hotspots.bed</code>, <code>analytics_summary.json</code>
+       and four figures. Column layouts are on the
+       <a href="{{ url_for('main.help_page') }}#outputs">Help page</a>.</p>
+
+    <p><b>Exit codes:</b> <code>0</code> success &middot; <code>1</code> a
+       GFViewer error (bad input; message on stderr) &middot; <code>2</code>
+       usage error (missing <code>-d/-g/-o</code> or an unknown flag).</p>
+
+    <h2>6. Example datasets</h2>
+    <p>Run <code>python tests/make_fixtures.py</code> from a source checkout to
+       build the bundled datasets under <code>static/tests/</code> (the three
+       <i>Babesia</i> sets, a 6-family set in every input format, and synthetic
+       10-family <i>Arabidopsis</i> and 20-family <i>C. elegans</i> sets), or
+       <a href="{{ datasets_zip }}">download them all as a ZIP</a> and from the
+       <a href="{{ url_for('main.index') }}">home page</a>.</p>
+    <pre><code>gfviewer -d static/tests/synthetic/arabidopsis_10/genes.tsv \
+         -g static/tests/synthetic/arabidopsis_10/genome.txt \
+         -o out/arabidopsis --analytics -cen</code></pre>
+
+    <h2>7. Web portal (optional)</h2>
+    <pre><code>python -m pip install -e ".[web]"
+python flaskapp.py                       # dev:  http://localhost:5001
+gunicorn -w 1 --threads 4 -b 0.0.0.0:5001 "gfviewer_web:create_app()"   # prod</code></pre>
+
+    <h2>Troubleshooting</h2>
+    <table>
+        <tr><th>Symptom</th><th>Fix</th></tr>
+        <tr><td><code>gfviewer: command not found</code></td>
+            <td>Scripts dir not on <code>PATH</code>. Use
+                <code>python -m gfviewer.cli &hellip;</code>, add the folder from
+                <code>python -m site --user-base</code>, or
+                <code>pipx install gfviewer</code>.</td></tr>
+        <tr><td><code>ModuleNotFoundError</code> right after install</td>
+            <td>Installed into a different interpreter. Compare
+                <code>python -m pip show gfviewer</code> (its <code>Location</code>)
+                with <code>python -c "import sys;print(sys.executable)"</code>;
+                use a venv.</td></tr>
+        <tr><td>matplotlib display / <code>TclError</code> on a headless server</td>
+            <td><code>export MPLBACKEND=Agg</code> (GFViewer selects Agg
+                internally, but a stray <code>matplotlibrc</code> can override
+                it).</td></tr>
+        <tr><td><code>pip</code> tries to build NumPy/pandas from source</td>
+            <td><code>python -m pip install --upgrade pip setuptools wheel</code>
+                first.</td></tr>
+        <tr><td>Fonts differ from the paper</td>
+            <td>Pass <code>--font "DejaVu Sans"</code> (bundled with matplotlib)
+                for a portable result.</td></tr>
+        <tr><td>Legacy <code>.xls</code> won't read</td>
+            <td><code>pip install xlrd</code>, or convert to CSV/TSV.</td></tr>
+    </table>
+    <p>The full, always-current version of this guide lives at
+       <a href="{{ links.guide }}" target="_blank" rel="noopener"><code>docs/INSTALL.md</code></a>
+       in the repository (also
+       <a href="{{ url_for('main.install_guide_md') }}">downloadable here</a>).
+       For anything else, open an issue at
+       <a href="{{ links.github }}/issues" target="_blank" rel="noopener">the tracker</a>.</p>
+</div>
+{% endblock %}

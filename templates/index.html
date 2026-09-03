@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Visualize multigene-family localization across chromosomes</h1>
+    <p>Upload gene coordinates and a genome (or chromosome lengths). GFViewer
+       draws every family in its own colour along round-capped ideograms, computes
+       localization statistics, and lets you refine the figure in the browser
+       before exporting to PDF, SVG, PNG or JPG.</p>
+</section>
+
+<form id="gfv-form" class="card" action="{{ url_for('api.create_job') }}" method="post"
+      enctype="multipart/form-data">
+    <div class="grid">
+        <fieldset class="span-2">
+            <legend>Input files</legend>
+            <label>Annotation file(s) <span class="req">*</span>
+                <input type="file" name="data" multiple required
+                       accept=".xlsx,.xls,.csv,.tsv,.txt,.bed,.gff,.gff3,.gtf,.gz">
+                <small>Table (.xlsx/.csv/.tsv), <b>BED</b>, <b>GFF3</b> or <b>GTF</b>.
+                       Select several files to treat each file name as a family.</small>
+            </label>
+            <label>Genome / chromosome lengths <span class="req">*</span>
+                <input type="file" name="genome" required
+                       accept=".fasta,.fa,.fna,.fai,.txt,.tsv,.csv,.sizes,.genome">
+                <small>FASTA, .fai, chrom.sizes, or <code>chrom,length</code> per line.</small>
+            </label>
+            <label>Colour map <small>(optional)</small>
+                <input type="file" name="colors" accept=".txt,.tsv,.csv">
+            </label>
+            <label>Gene&nbsp;&rarr;&nbsp;family mapping <small>(optional, single BED/GFF)</small>
+                <input type="file" name="mapping" accept=".txt,.tsv,.csv">
+            </label>
+            <label>Style file <small>(optional .yaml/.json)</small>
+                <input type="file" name="style" accept=".yaml,.yml,.json">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Layout</legend>
+            <label>Orientation
+                <select name="orientation">
+                    <option value="horizontal" selected>horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+            </label>
+            <label>Telomere length (bp)
+                <input type="number" name="telomere_length" value="10000" min="0">
+            </label>
+            <label>Chromosomes side by side <small>(blank = auto)</small>
+                <input type="number" name="columns" placeholder="auto" min="0">
+            </label>
+            <label>Thickness slot / row height (cm)
+                <input type="number" name="row_height_cm" value="3.0" step="0.2" min="1.2">
+            </label>
+            <label>Length budget (cm, vertical)
+                <input type="number" name="length_cm" value="16" step="1" min="4">
+            </label>
+            <label class="check"><input type="checkbox" name="show_centromeres" value="1"> Draw centromeres</label>
+            <label class="check"><input type="checkbox" name="no_split_strand" value="1"> Do not split strands</label>
+            <label class="check"><input type="checkbox" name="show_unplaced" value="1"> Also draw unplaced contigs</label>
+            <label>Genes on sequences missing from the genome file
+                <select name="on_unknown_chrom">
+                    <option value="error" selected>reject (error)</option>
+                    <option value="unplaced">keep as unplaced contigs</option>
+                    <option value="drop">drop them</option>
+                </select>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Marks &amp; labels</legend>
+            <label>Gene mark style
+                <select name="tick_style">
+                    <option value="line" selected>line</option>
+                    <option value="lollipop">lollipop</option>
+                    <option value="triangle">triangle</option>
+                </select>
+            </label>
+            <label>Gene labels
+                <select name="label_mode">
+                    <option value="none" selected>none</option>
+                    <option value="family">family (one per cluster)</option>
+                    <option value="gene_id">gene id</option>
+                </select>
+            </label>
+            <label>Figure title
+                <input type="text" name="title" placeholder="optional">
+            </label>
+            <label class="check"><input type="checkbox" name="show_titles" value="1" checked>
+                Bake titles into the image files</label>
+            <small>Applies to the chromosome figure title and the built-in
+                headings on the analytics charts. Uncheck for clean images to
+                caption yourself.</small>
+        </fieldset>
+
+        <fieldset>
+            <legend>Legend</legend>
+            <label>Location
+                <select name="legend_location">
+                    <option value="lower center" selected>lower center</option>
+                    <option value="upper center">upper center</option>
+                    <option value="outside right">outside right</option>
+                    <option value="outside bottom">outside bottom</option>
+                    <option value="center left">center left</option>
+                    <option value="center right">center right</option>
+                </select>
+            </label>
+            <label>Columns <small>(0 = auto)</small>
+                <input type="number" name="legend_columns" value="0" min="0">
+            </label>
+            <label class="check"><input type="checkbox" name="no_legend" value="1"> Hide legend</label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Many families</legend>
+            <label class="check"><input type="checkbox" name="collapse_rare" value="1">
+                Collapse rare families into &ldquo;Other&rdquo; above the 40-family cap</label>
+            <label>GFF/GTF family attribute <small>(optional)</small>
+                <input type="text" name="family_attr" placeholder="e.g. gene_family">
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Analytics &amp; export</legend>
+            <label class="check"><input type="checkbox" name="with_analytics" value="1" checked>
+                Compute localization statistics</label>
+            <label class="check"><input type="checkbox" name="colocalization" value="1">
+                Pairwise co-localization test (slower)</label>
+            <div class="fmt">
+                <span>Also export:</span>
+                <label class="check"><input type="checkbox" name="formats" value="png" checked> PNG</label>
+                <label class="check"><input type="checkbox" name="formats" value="jpg"> JPG</label>
+                <label class="check"><input type="checkbox" name="formats" value="eps"> EPS</label>
+                <small>PDF &amp; SVG are always produced.</small>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="actions">
+        <button type="submit" class="btn primary">Generate figure</button>
+        <span id="gfv-form-msg" class="msg" role="status"></span>
+    </div>
+</form>
+
+<section class="card examples">
+    <h2>Example datasets</h2>
+    <p class="muted">Run one straight through the pipeline, or download the raw
+       input files to try on your own machine. All of these ship with GFViewer.</p>
+    <div class="dataset-table-wrap">
+    <table class="dataset-table">
+        <thead>
+            <tr><th>Dataset</th><th>Organism</th><th class="num">Families</th>
+                <th>Format</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        {% for d in datasets %}
+            <tr{% if not d.available %} class="unavailable"{% endif %}>
+                <td>{{ d.title.split('—')[-1].strip() if '—' in d.title else d.title }}</td>
+                <td>{{ d.organism }}</td>
+                <td class="num">{{ d.families }}</td>
+                <td>{{ d.format }}</td>
+                <td class="dataset-actions">
+                    {% if d.available %}
+                    <a class="btn small primary" href="{{ url_for('main.dataset_run', key=d.key) }}">Run</a>
+                    <a class="btn small" href="{{ url_for('main.dataset_download', key=d.key) }}">Download</a>
+                    {% else %}
+                    <span class="muted">not installed</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <p class="muted">
+        <a class="btn" href="{{ url_for('main.datasets_download_all') }}">Download every dataset (ZIP)</a>
+    </p>
+</section>
+
+<section class="card install-cta">
+    <h2>Prefer the command line?</h2>
+    <p class="muted">GFViewer is a pip-installable tool. Everything this portal
+       does &mdash; rendering, styling, the full analytics suite &mdash; is also
+       available as the <code>gfviewer</code> command for scripting and batch
+       runs.</p>
+    <pre class="cta-code"><code>python -m pip install gfviewer
+gfviewer -d genes.csv -g genome.fasta -o out/ --analytics -cen</code></pre>
+    <div class="dl-links">
+        <a class="btn primary" href="{{ url_for('main.install') }}">Installation guide</a>
+        <a class="btn" href="{{ links.pypi }}" target="_blank" rel="noopener">PyPI</a>
+        <a class="btn" href="{{ links.github }}" target="_blank" rel="noopener">Source (GitHub)</a>
+        <a class="btn" href="{{ links.releases }}" target="_blank" rel="noopener">Release downloads</a>
+        <a class="btn" href="{{ url_for('main.install_guide_md') }}">Guide (Markdown)</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/submit.js') }}"></script>
+{% endblock %}

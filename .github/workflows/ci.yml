@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build the example datasets (BED/GFF/GTF + synthetic)
+        run: python tests/make_fixtures.py
+
+      - name: Run tests
+        env:
+          MPLBACKEND: Agg
+        run: pytest -q
+
+      - name: Smoke-test the CLI on every bundled dataset
+        run: |
+          set -e
+          for pair in \
+            "static/tests/data_test_1.xlsx static/tests/chrs_test_1.txt" \
+            "static/tests/data_test_2.csv static/tests/chrs_test_2.txt" \
+            "static/tests/data_test_3.tsv static/tests/chrs_test_3.fasta" \
+            "static/tests/formats/genes.gff3 static/tests/chrs_test_2.txt" \
+            "static/tests/synthetic/arabidopsis_10/genes.tsv static/tests/synthetic/arabidopsis_10/genome.txt" \
+            "static/tests/synthetic/celegans_20/genes.tsv static/tests/synthetic/celegans_20/genome.txt"; do
+            set -- $pair
+            python gfviewer.py -d "$1" -g "$2" -o "out/$(basename $1)" \
+              -f pdf svg png --analytics --permutations 50 -cen
+          done
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          python -m twine check dist/*
+
+      - name: Install the wheel into a clean venv and run the entry point
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python -m venv /tmp/v
+          /tmp/v/bin/pip install --upgrade pip
+          /tmp/v/bin/pip install dist/gfviewer-*.whl
+          /tmp/v/bin/gfviewer --version
+          /tmp/v/bin/gfviewer --color-guide > /dev/null
+          python tests/make_fixtures.py
+          /tmp/v/bin/gfviewer \
+            -d static/tests/synthetic/arabidopsis_10/genes.tsv \
+            -g static/tests/synthetic/arabidopsis_10/genome.txt \
+            -o /tmp/cliout -f pdf svg png --analytics --permutations 40 -cen
+          test -s /tmp/cliout/gfviewer.pdf
+          test -s /tmp/cliout/analytics_summary.json
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfviewer-dist
+          path: dist/*
