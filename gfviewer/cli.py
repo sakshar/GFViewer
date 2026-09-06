@@ -121,6 +121,12 @@ def build_parser():
                     "the analytics-chart image files")
     st.add_argument("--dpi", type=int)
     st.add_argument("--page-size", nargs=2, type=float, metavar=("W_CM", "H_CM"))
+    st.add_argument("--no-fit", action="store_true",
+                    help="keep the full reserved page; do not crop the figure "
+                    "to the drawn content")
+    st.add_argument("--margin-cm", type=float, dest="margin_cm",
+                    help="white border kept around the drawing when fitting "
+                    "(default 0.3 cm)")
     st.add_argument("--background")
     st.add_argument("--tick-style", choices=["line", "lollipop", "triangle", "box", "arrow"])
     st.add_argument("--no-split-strand", action="store_true")
@@ -169,6 +175,10 @@ def _resolve_style(args):
         style.dpi = args.dpi
     if args.page_size:
         style.page_width_cm, style.page_height_cm = args.page_size
+    if args.no_fit:
+        style.fit_to_content = False
+    if args.margin_cm is not None:
+        style.page_margin_cm = args.margin_cm
     if args.background:
         style.background = args.background
     if args.tick_style:

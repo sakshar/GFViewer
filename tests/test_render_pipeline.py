@@ -210,6 +210,45 @@ def test_vertical_gene_id_labels_stay_in_view(data_xlsx):
         plt.close(fig)
 
 
+def test_fit_to_content_crops_the_page(data_xlsx):
+    """fit_to_content trims the reserved margins: a smaller figure, with the
+    legend pulled up against the chromosomes and nothing clipped."""
+    import matplotlib.pyplot as plt
+
+    from gfviewer.genome import load_genome
+    from gfviewer.io import load_features
+    from gfviewer.palette import build_palette
+
+    g = load_genome(os.path.join(os.path.dirname(data_xlsx), "chrs_test_1.txt"))
+    feats, _ = load_features(data_xlsx, g)
+    fams = list(dict.fromkeys(feats[feats.kind == "gene"]["gene_family"]))
+    cmap, _, _ = build_palette(fams)
+
+    full = render(feats, g, StyleConfig(fit_to_content=False), cmap)[0]
+    fit = render(feats, g, StyleConfig(fit_to_content=True), cmap)[0]
+
+    fw, fh = full.get_size_inches()
+    tw, th = fit.get_size_inches()
+    assert tw < fw - 0.5 and th < fh + 1e-6      # narrower, no taller
+    assert tw * th < fw * fh * 0.85              # visibly less dead space
+
+    # everything (chromosomes, gene marks, legend) sits inside the cropped view
+    fit.canvas.draw()
+    ax = fit.axes[0]
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    leg = ax.get_legend()
+    bb = leg.get_window_extent(fit.canvas.get_renderer())
+    inv = ax.transData.inverted()
+    (lx0, ly0) = inv.transform((bb.x0, bb.y0))
+    (lx1, ly1) = inv.transform((bb.x1, bb.y1))
+    assert x0 - 0.3 <= lx0 and lx1 <= x1 + 0.3
+    assert y0 - 0.3 <= ly0 and ly1 <= y1 + 0.3
+
+    for f in (full, fit):
+        plt.close(f)
+
+
 def test_synthetic_datasets_render_and_analyse(synthetic_dataset, tmp_path):
     data, genome = synthetic_dataset
     res = _run(data, genome, tmp_path, formats=["svg"], with_analytics=True,

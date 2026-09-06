@@ -253,6 +253,7 @@ class JobManager:
             "row_height_cm": ("row_height_cm", float),
             "length_cm": ("length_cm", float),
             "page_width_cm": ("page_width_cm", float),
+            "page_margin_cm": ("page_margin_cm", float),
         }
         for attr, (key, cast) in m.items():
             if p.get(key) not in (None, ""):
@@ -269,6 +270,7 @@ class JobManager:
         style.show_centromeres = bool(p.get("show_centromeres"))
         style.show_unplaced = bool(p.get("show_unplaced"))
         style.show_titles = bool(p.get("show_titles", True))
+        style.fit_to_content = bool(p.get("fit_to_content", True))
         style.split_by_strand = not p.get("no_split_strand")
         if p.get("no_legend"):
             style.legend_show = False

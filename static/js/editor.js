@@ -38,6 +38,8 @@
     tickStyle: document.getElementById("gfv-tick-style"),
     centromeres: document.getElementById("gfv-centromeres"),
     showTitles: document.getElementById("gfv-show-titles"),
+    fit: document.getElementById("gfv-fit"),
+    margin: document.getElementById("gfv-margin"),
     apply: document.getElementById("gfv-apply"),
     reset: document.getElementById("gfv-reset"),
     applyMsg: document.getElementById("gfv-apply-msg"),
@@ -132,6 +134,8 @@
     el.centromeres.checked = !!style.show_centromeres;
     el.showUnplaced.checked = !!style.show_unplaced;
     if (el.showTitles) el.showTitles.checked = style.show_titles !== false;
+    if (el.fit) el.fit.checked = style.fit_to_content !== false;
+    if (el.margin && style.page_margin_cm != null) el.margin.value = style.page_margin_cm;
   }
 
   el.famAll.addEventListener("change", function () {
@@ -383,6 +387,11 @@
       show_centromeres: el.centromeres.checked,
       show_unplaced: el.showUnplaced.checked,
       show_titles: el.showTitles ? el.showTitles.checked : true,
+      fit_to_content: el.fit ? el.fit.checked : true,
+      page_margin_cm: (function () {
+        var m = el.margin ? parseFloat(el.margin.value) : 0.3;
+        return isNaN(m) || m < 0 ? 0.3 : m;
+      })(),
       only_chromosomes: collectChroms(),
       only_families: collectFamilies(),
       _colors: {}

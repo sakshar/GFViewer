@@ -36,6 +36,14 @@ class StyleConfig:
     page_width_cm: float = 26.0
     page_height_cm: float = 20.0        # used as-is only when auto_page_height is off
     auto_page_height: bool = True       # size the page to the content
+    fit_to_content: bool = True         # after drawing, crop the figure to what
+    #                                    was actually rendered (chromosomes,
+    #                                    labels, legend) so there is no wide dead
+    #                                    band around the drawing or between the
+    #                                    chromosomes and the legend
+    page_margin_cm: float = 0.3         # uniform white border kept by fit_to_content
+    #                                    (also the gap between the drawing and an
+    #                                    outside / bottom legend)
     row_height_cm: float = 3.0          # space per chromosome across its thickness
     length_cm: float = 16.0             # length-axis budget (vertical orientation)
     dpi: int = 200
@@ -130,6 +138,10 @@ class StyleConfig:
         for name in ("page_width_cm", "page_height_cm", "body_width"):
             if getattr(self, name) <= 0:
                 errs.append("{} must be > 0".format(name))
+        if self.page_margin_cm < 0:
+            errs.append("page_margin_cm must be >= 0")
+        if not isinstance(self.fit_to_content, bool):
+            errs.append("fit_to_content must be true or false")
         if self.dpi < 30 or self.dpi > 1200:
             errs.append("dpi must be between 30 and 1200")
         if self.chromosomes_per_row < 0:

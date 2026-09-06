@@ -64,14 +64,14 @@ Install the latest `main`, or pin a tag / commit:
 python -m pip install "git+https://github.com/sakshar/GFViewer.git"
 
 # a specific release tag
-python -m pip install "git+https://github.com/sakshar/GFViewer.git@v2.0.1"
+python -m pip install "git+https://github.com/sakshar/GFViewer.git@v2.0.2"
 ```
 
 Or grab a release tarball from
 <https://github.com/sakshar/GFViewer/releases> and:
 
 ```bash
-python -m pip install gfviewer-2.0.1.tar.gz
+python -m pip install gfviewer-2.0.2.tar.gz
 ```
 
 ### 2c. From a source checkout (editable)
@@ -134,7 +134,7 @@ pipx install gfviewer
 ## 3. Verify the installation
 
 ```bash
-gfviewer --version           # -> GFViewer 2.0.1
+gfviewer --version           # -> GFViewer 2.0.2
 gfviewer --help              # full option list
 gfviewer --color-guide       # the built-in 20-colour palette
 ```
@@ -317,6 +317,8 @@ Run `gfviewer --help` for the authoritative list. Grouped summary:
 | `--no-titles` | write the chromosome figure and the analytics-chart images with no title text (for a manuscript that captions them itself) |
 | `--dpi N` | raster resolution |
 | `--page-size W_CM H_CM` | fixed page size |
+| `--no-fit` | keep the full reserved page instead of cropping the figure to the drawn content |
+| `--margin-cm CM` | white border kept around the drawing when fitting (default `0.3`) |
 | `--background COLOR` | page background |
 | `--tick-style {line,lollipop,triangle,box,arrow}` | gene mark shape |
 | `--no-split-strand` | draw all genes on one side of the axis |

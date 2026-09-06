@@ -130,7 +130,9 @@ class _Layout:
         gutter_room = self.across / 2.0 - (self.body_h / 2.0 + self.tick_len)
         self._label_overflow = max(0.0, label_gutter - gutter_room) if want_labels else 0.0
 
-        self.m_top = 2.6 if want_title else 1.0
+        self.m_top = 1.0
+        if want_title:
+            self.m_top = 2.7 if style.subtitle else 1.9
         bottom_legend = (
             style.legend_show and style.legend_location in _BOTTOM_LEGEND
             and not style.legend_separate_page
@@ -173,6 +175,18 @@ class _Layout:
             content_w = self.m_left + block + self.m_right
             self.W = max(content_w, legend_min_w)
             self.x_pad = (self.W - block) / 2.0   # centre the chromosome columns
+
+        # ---- drawing-block rectangle, in cm ------------------------------- #
+        # The rows / columns of chromosomes (plus their ticks and labels) live
+        # inside this box.  The legend is anchored to it, and fit_to_content
+        # trims everything outside it down to ``page_margin_cm``.
+        if self.orient == "horizontal":
+            y_top = self.H - self.m_top
+            self.cbox = (self.m_left, y_top - self.across * self.lines,
+                         self.W - self.m_right, y_top)
+        else:
+            self.cbox = (self.x_pad, self.m_bottom,
+                         self.x_pad + self.across * self.cpr, self.H - self.m_top)
 
     # ---- per-chromosome coordinate frame -------------------------------- #
     def placer(self, index):
@@ -290,6 +304,8 @@ def render(features, genome, style, color_map):
             and (style.legend_per_page or page == 0)
         ):
             _draw_legend(ax, lay, style, color_map)
+        if getattr(style, "fit_to_content", True):
+            _fit_to_content(fig, ax, style)
         figs.append(fig)
 
     if style.legend_separate_page and style.legend_show:
@@ -313,14 +329,14 @@ def _new_page(style, n_on_page, has_title=None, label_gutter=0.0):
 
 def _title(ax, lay, style):
     t = ax.text(
-        lay.W / 2.0, lay.H - 1.1, style.title, ha="center", va="center",
+        lay.W / 2.0, lay.H - 0.85, style.title, ha="center", va="center",
         fontsize=style.title_font_size, fontfamily=style.title_font_family,
         color=style.title_color, weight="bold",
     )
     t.set_gid("gfv-title")
     if style.subtitle:
         ax.text(
-            lay.W / 2.0, lay.H - 1.9, style.subtitle, ha="center", va="center",
+            lay.W / 2.0, lay.H - 1.5, style.subtitle, ha="center", va="center",
             fontsize=style.title_font_size * 0.68,
             fontfamily=style.title_font_family, color=style.title_color,
         )
@@ -618,13 +634,6 @@ def _legend_handles(style, color_map):
     return handles
 
 
-def _legend_loc(style):
-    return {
-        "outside right": ("center left", (1.005, 0.5)),
-        "outside bottom": ("upper center", (0.5, -0.01)),
-    }.get(style.legend_location, (style.legend_location, None))
-
-
 def _auto_ncol(n):
     if n <= 6:
         return n
@@ -635,21 +644,144 @@ def _auto_ncol(n):
     return 6
 
 
+_BELOW_LEGEND = _BOTTOM_LEGEND            # {"lower left", "lower center", ...}
+
+
 def _draw_legend(ax, lay, style, color_map):
     handles = _legend_handles(style, color_map)
-    ncol = style.legend_columns or _auto_ncol(len(handles))
-    loc, anchor = _legend_loc(style)
-    leg = ax.legend(
-        handles=handles, loc=loc, bbox_to_anchor=anchor, ncol=ncol,
-        frameon=style.legend_frame, fontsize=style.legend_font_size,
-        title=style.legend_title or None,
+    loc = style.legend_location
+    pad = max(0.15, float(getattr(style, "page_margin_cm", 0.3))) + 0.3
+    cx0, cy0, cx1, cy1 = lay.cbox
+    cxm, cym = (cx0 + cx1) / 2.0, (cy0 + cy1) / 2.0
+
+    kw = dict(
+        handles=handles, frameon=style.legend_frame,
+        fontsize=style.legend_font_size, title=style.legend_title or None,
         prop={"family": style.legend_font_family},
-        borderaxespad=0.6, handletextpad=0.5, columnspacing=1.1,
+        borderaxespad=0.0, handletextpad=0.5, columnspacing=1.1,
+        bbox_transform=ax.transData,
     )
+
+    # Anchor the legend to the drawing block (in cm / data coordinates) rather
+    # than to the axes edge, so it hugs the chromosomes instead of floating in
+    # the reserved page margin.  fit_to_content then trims whatever is left.
+    if loc in _BELOW_LEGEND:                       # a band under the drawing
+        use_loc, ax_x = {
+            "lower left": ("upper left", cx0),
+            "lower right": ("upper right", cx1),
+        }.get(loc, ("upper center", cxm))
+        ncol = style.legend_columns or _auto_ncol(len(handles))
+        leg = ax.legend(loc=use_loc, bbox_to_anchor=(ax_x, cy0 - pad),
+                        ncol=ncol, **kw)
+    elif loc == "outside right":                   # a column beside the drawing
+        ncol = style.legend_columns or max(1, math.ceil(len(handles) / 18))
+        leg = ax.legend(loc="center left", bbox_to_anchor=(cx1 + pad, cym),
+                        ncol=ncol, **kw)
+    else:                                          # tucked inside the drawing box
+        ncol = style.legend_columns or _auto_ncol(len(handles))
+        leg = ax.legend(loc=(loc if loc not in ("none", "") else "best"),
+                        bbox_to_anchor=(cx0, cy0, cx1 - cx0, cy1 - cy0),
+                        ncol=ncol, **kw)
+
     leg.set_gid("gfv-legend")
     if leg.get_title() and leg.get_title().get_text():
         leg.get_title().set_fontsize(style.legend_font_size * 1.05)
     return leg
+
+
+# --------------------------------------------------------------------------- #
+def _fit_to_content(fig, ax, style):
+    """Shrink *fig* (and the axes limits) to the union of everything drawn on
+    it, leaving only ``style.page_margin_cm`` of white all round.
+
+    :class:`_Layout` deliberately reserves roomy margins -- a chromosome-name
+    gutter, a fixed band for a bottom / outside legend, headroom for labels that
+    may not all be used.  Whatever the drawing does not fill is dead space; this
+    pass measures the real extent (chromosomes, ticks, labels, title, legend)
+    and crops to it.  Geometry stays in centimetres and 1:1, so the SVG ids and
+    the web editor keep working -- only the viewBox gets tighter.
+    """
+    pad = max(0.0, float(getattr(style, "page_margin_cm", 0.3)))
+    try:
+        fig.canvas.draw()
+        rend = fig.canvas.get_renderer()
+    except Exception:                       # pragma: no cover - backend quirk
+        return
+    inv = ax.transData.inverted()
+    td = ax.transData
+
+    def _bounds(artists):
+        xs, ys = [], []
+        for a in artists:
+            try:
+                if not a.get_visible():
+                    continue
+                # Collections (gene-mark ticks, lollipop / triangle scatter)
+                # don't report a useful window extent on older matplotlib --
+                # ask for their data-space bounds directly.
+                if hasattr(a, "get_datalim"):
+                    db = a.get_datalim(td)
+                    if db.width or db.height:
+                        xs += [db.x0, db.x1]
+                        ys += [db.y0, db.y1]
+                        continue
+                bb = a.get_window_extent(rend)
+            except Exception:
+                continue
+            if not (bb.width or bb.height):
+                continue
+            (px0, py0) = inv.transform((bb.x0, bb.y0))
+            (px1, py1) = inv.transform((bb.x1, bb.y1))
+            xs += [px0, px1]
+            ys += [py0, py1]
+        if not xs:
+            return None
+        return [min(xs), min(ys), max(xs), max(ys)]
+
+    body = _bounds(list(ax.patches) + list(ax.collections)
+                   + list(ax.lines) + list(ax.texts))
+    leg = ax.get_legend()
+    lb = None
+    if body is None:                            # legend-only page: crop to it
+        lb = _bounds([leg]) if leg is not None else None
+        if lb is None:
+            return
+        x0, y0 = lb[0] - pad, lb[1] - pad
+        ax.set_xlim(x0, lb[2] + pad)
+        ax.set_ylim(y0, lb[3] + pad)
+        ax.set_position([0, 0, 1, 1])
+        fig.set_size_inches((lb[2] - lb[0] + 2 * pad) * CM,
+                            (lb[3] - lb[1] + 2 * pad) * CM, forward=True)
+        return
+    cx0, cy0, cx1, cy1 = body
+
+    # Re-anchor a bottom / outside legend to the *measured* drawing (not the
+    # roomy row block :class:`_Layout` reserved) so it sits ``pad`` from the
+    # chromosomes, then re-measure it in its new spot.
+    if leg is not None:
+        loc = style.legend_location
+        gap = pad + 0.3                      # breathing room drawing <-> legend
+        cxm, cym = (cx0 + cx1) / 2.0, (cy0 + cy1) / 2.0
+        if loc in _BELOW_LEGEND:
+            ax_x = {"lower left": cx0, "lower right": cx1}.get(loc, cxm)
+            leg.set_bbox_to_anchor((ax_x, cy0 - gap), transform=ax.transData)
+        elif loc == "outside right":
+            leg.set_bbox_to_anchor((cx1 + gap, cym), transform=ax.transData)
+        try:
+            fig.canvas.draw()
+        except Exception:                   # pragma: no cover
+            pass
+        lb = _bounds([leg])
+
+    box = body if lb is None else [min(body[0], lb[0]), min(body[1], lb[1]),
+                                   max(body[2], lb[2]), max(body[3], lb[3])]
+    x0, y0 = box[0] - pad, box[1] - pad
+    w = max(box[2] + pad - x0, 1.0)
+    h = max(box[3] + pad - y0, 1.0)
+    ax.set_xlim(x0, x0 + w)
+    ax.set_ylim(y0, y0 + h)
+    ax.set_position([0, 0, 1, 1])
+    fig.set_size_inches(w * CM, h * CM, forward=True)
 
 
 def _legend_page(style, color_map):
@@ -663,6 +795,8 @@ def _legend_page(style, color_map):
         prop={"family": style.legend_font_family},
     )
     leg.set_gid("gfv-legend")
+    if getattr(style, "fit_to_content", True):
+        _fit_to_content(fig, ax, style)
     return fig
 
 

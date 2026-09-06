@@ -57,6 +57,7 @@ Key options (`gfviewer --help` for the full list):
 | `--style` / `--save-style` | load / write a YAML/JSON style file |
 | `--analytics` | also write per-family statistics as CSV/JSON |
 | `--no-titles` | omit titles from the exported figure and analytics-chart images |
+| `--no-fit` / `--margin-cm` | keep the full reserved page / set the white border (default: crop to the drawing, 0.3 cm border) |
 | `-cen` | draw centromeres |
 
 ### Input formats

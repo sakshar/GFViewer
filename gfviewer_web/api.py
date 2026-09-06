@@ -12,7 +12,7 @@ _FORM_LIST_FIELDS = {"formats", "gff_types"}
 _BOOL_FIELDS = {
     "with_analytics", "collapse_rare", "colocalization",
     "show_centromeres", "show_unplaced", "no_split_strand", "no_legend",
-    "show_titles",
+    "show_titles", "fit_to_content",
 }
 
 

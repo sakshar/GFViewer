@@ -73,6 +73,15 @@ MGF3,0.2,0.6,0.9  # RGB 0-1 (or 0-255)</code></pre>
        in the editor, then Regenerate) to write the figures with no title text at
        all &mdash; handy when the figure will sit under its own caption in a
        manuscript. On the command line this is <code>--no-titles</code>.</p>
+    <p><b>Trim surrounding whitespace.</b> After drawing, GFViewer crops the
+       figure to what was actually rendered &mdash; the chromosomes, their gene
+       marks and labels, the title and the legend &mdash; so there is no wide
+       dead band around the drawing or between the chromosomes and the legend.
+       The <b>Margin</b> box sets how much white to keep all round (default
+       0.3&nbsp;cm; it is also the gap to an outside / bottom legend). Untick
+       <b>&ldquo;Trim surrounding whitespace&rdquo;</b> to keep the full reserved
+       page. On the command line this is <code>--no-fit</code> /
+       <code>--margin-cm</code>.</p>
 
     <h2>Analytics</h2>
     <p>When analytics is enabled, GFViewer computes a battery of quantitative
