@@ -64,14 +64,14 @@ Install the latest `main`, or pin a tag / commit:
 python -m pip install "git+https://github.com/sakshar/GFViewer.git"
 
 # a specific release tag
-python -m pip install "git+https://github.com/sakshar/GFViewer.git@v2.0.2"
+python -m pip install "git+https://github.com/sakshar/GFViewer.git@v2.0.3"
 ```
 
 Or grab a release tarball from
 <https://github.com/sakshar/GFViewer/releases> and:
 
 ```bash
-python -m pip install gfviewer-2.0.2.tar.gz
+python -m pip install gfviewer-2.0.3.tar.gz
 ```
 
 ### 2c. From a source checkout (editable)
@@ -134,7 +134,7 @@ pipx install gfviewer
 ## 3. Verify the installation
 
 ```bash
-gfviewer --version           # -> GFViewer 2.0.2
+gfviewer --version           # -> GFViewer 2.0.3
 gfviewer --help              # full option list
 gfviewer --color-guide       # the built-in 20-colour palette
 ```

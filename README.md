@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="static/images/logo.png" width="80%">
+  <img src="https://raw.githubusercontent.com/sakshar/GFViewer/main/static/images/logo.png" alt="GFViewer" width="80%">
 </p>
+
 
 Visualize the localization of **multigene families** across the chromosomes of a
 genome, and quantify how those families are distributed.
