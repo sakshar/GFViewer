@@ -148,6 +148,7 @@ def build_palette(
     collapse_rare=False,
     family_counts=None,
     keep=None,
+    max_families=None,
 ):
     """Build the ``{family: rgb}`` mapping used by the renderer.
 
@@ -167,6 +168,12 @@ def build_palette(
     keep:
         Optional explicit set/list of families to keep out of the "Other"
         bucket regardless of frequency.
+    max_families:
+        Optional explicit number of top (most frequent) families to retain
+        when ``collapse_rare`` is set, overriding the default of keeping up
+        to ``HARD_ABOVE - 1``. Collapsing then triggers as soon as the family
+        count exceeds this number, even if it is well under ``HARD_ABOVE``.
+        Clamped to ``HARD_ABOVE - 1``.
 
     Returns
     -------
@@ -194,7 +201,11 @@ def build_palette(
         return {f: cmap[f] for f in families}, warnings, collapsed
 
     n = len(families)
-    if n > HARD_ABOVE:
+    n_keep = HARD_ABOVE - 1
+    if collapse_rare and max_families:
+        n_keep = max(1, min(int(max_families), HARD_ABOVE - 1))
+    collapse_threshold = n_keep if (collapse_rare and max_families) else HARD_ABOVE
+    if n > collapse_threshold:
         if not collapse_rare:
             raise InputValidationError(
                 "{} gene families exceeds the readable limit of {}.".format(n, HARD_ABOVE),
@@ -213,7 +224,7 @@ def build_palette(
         ranked = sorted(
             families, key=lambda f: (f in keep, family_counts.get(f, 0)), reverse=True
         )
-        survivors = ranked[: HARD_ABOVE - 1]  # leave room for the "Other" slot
+        survivors = ranked[:n_keep]  # leave room for the "Other" slot
         survivors = [f for f in families if f in set(survivors)]  # restore order
         collapsed = set(families) - set(survivors)
         warnings.append(

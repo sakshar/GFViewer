@@ -18,6 +18,9 @@
     stateText: root.querySelector(".state-text"),
     error: document.getElementById("gfv-error"),
     warnings: document.getElementById("gfv-warnings"),
+    warningsBody: document.getElementById("gfv-warnings-body"),
+    warningsHide: document.getElementById("gfv-warnings-hide"),
+    warningsShow: document.getElementById("gfv-warnings-show"),
     workspace: document.getElementById("gfv-workspace"),
     figure: document.getElementById("gfv-figure"),
     famList: document.getElementById("gfv-fam-list"),
@@ -38,8 +41,15 @@
     tickStyle: document.getElementById("gfv-tick-style"),
     centromeres: document.getElementById("gfv-centromeres"),
     showTitles: document.getElementById("gfv-show-titles"),
+    title: document.getElementById("gfv-title"),
     fit: document.getElementById("gfv-fit"),
     margin: document.getElementById("gfv-margin"),
+    telomereLength: document.getElementById("gfv-telomere-length"),
+    columns: document.getElementById("gfv-columns"),
+    rowHeight: document.getElementById("gfv-row-height"),
+    lengthCm: document.getElementById("gfv-length-cm"),
+    noSplitStrand: document.getElementById("gfv-no-split-strand"),
+    legendColumns: document.getElementById("gfv-legend-columns"),
     apply: document.getElementById("gfv-apply"),
     reset: document.getElementById("gfv-reset"),
     applyMsg: document.getElementById("gfv-apply-msg"),
@@ -47,6 +57,10 @@
     analyticsSummary: document.getElementById("gfv-analytics-summary"),
     analyticsFigs: document.getElementById("gfv-analytics-figs"),
     genesSection: document.getElementById("gfv-genes-section"),
+    tabbtnGenes: document.getElementById("gfv-tabbtn-genes"),
+    tabbtnFigs: document.getElementById("gfv-tabbtn-figs"),
+    tabbtnStats: document.getElementById("gfv-tabbtn-stats"),
+    figsSelect: document.getElementById("gfv-figs-select"),
     dlBundle: document.getElementById("gfv-dl-bundle"),
     dlBundleAll: document.getElementById("gfv-dl-bundle-all"),
     zoomIn: document.getElementById("gfv-zoom-in"),
@@ -90,12 +104,25 @@
     el.error.textContent = text;
   }
 
+  if (el.warningsHide) {
+    el.warningsHide.addEventListener("click", function () {
+      el.warnings.hidden = true;
+      el.warningsShow.hidden = false;
+    });
+  }
+  if (el.warningsShow) {
+    el.warningsShow.addEventListener("click", function () {
+      el.warnings.hidden = false;
+      el.warningsShow.hidden = true;
+    });
+  }
+
   function onDone(s) {
     el.state.hidden = true;
     el.workspace.hidden = false;
     if (s.warnings && s.warnings.length) {
       el.warnings.hidden = false;
-      el.warnings.innerHTML =
+      el.warningsBody.innerHTML =
         "<b>Notes:</b><ul>" +
         s.warnings.map(function (w) { return "<li>" + escapeHtml(w) + "</li>"; }).join("") +
         "</ul>";
@@ -113,6 +140,39 @@
     d.textContent = t;
     return d.innerHTML;
   }
+
+  // ---------------------------------------------------------------- tabs
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll("#gfv-tabs .tab-btn"));
+
+  function activateTab(id) {
+    tabButtons.forEach(function (btn) {
+      var active = btn.dataset.tab === id;
+      btn.classList.toggle("active", active);
+      var panel = document.getElementById(btn.dataset.tab);
+      if (panel) panel.hidden = !active;
+    });
+    if (id === "gfv-analytics") remeasureRowLimits();
+  }
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () { activateTab(btn.dataset.tab); });
+  });
+
+  // the Adjust panel's own Families/Chromosomes/Text/Layout/Legend tabs
+  var adjustTabButtons = Array.prototype.slice.call(document.querySelectorAll("#gfv-adjust-tabs .tab-btn"));
+
+  function activateAdjustTab(id) {
+    adjustTabButtons.forEach(function (btn) {
+      var active = btn.dataset.atab === id;
+      btn.classList.toggle("active", active);
+      var panel = document.getElementById(btn.dataset.atab);
+      if (panel) panel.hidden = !active;
+    });
+  }
+
+  adjustTabButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () { activateAdjustTab(btn.dataset.atab); });
+  });
 
   // ---------------------------------------------------------------- controls
   function seedControls(style) {
@@ -134,8 +194,15 @@
     el.centromeres.checked = !!style.show_centromeres;
     el.showUnplaced.checked = !!style.show_unplaced;
     if (el.showTitles) el.showTitles.checked = style.show_titles !== false;
+    if (el.title) el.title.value = style.title || "";
     if (el.fit) el.fit.checked = style.fit_to_content !== false;
     if (el.margin && style.page_margin_cm != null) el.margin.value = style.page_margin_cm;
+    if (el.telomereLength && style.telomere_length != null) el.telomereLength.value = style.telomere_length;
+    if (el.columns) el.columns.value = style.chromosomes_per_row ? style.chromosomes_per_row : "";
+    if (el.rowHeight && style.row_height_cm != null) el.rowHeight.value = style.row_height_cm;
+    if (el.lengthCm && style.length_cm != null) el.lengthCm.value = style.length_cm;
+    if (el.noSplitStrand) el.noSplitStrand.checked = style.split_by_strand === false;
+    if (el.legendColumns && style.legend_columns != null) el.legendColumns.value = style.legend_columns;
   }
 
   el.famAll.addEventListener("change", function () {
@@ -387,10 +454,32 @@
       show_centromeres: el.centromeres.checked,
       show_unplaced: el.showUnplaced.checked,
       show_titles: el.showTitles ? el.showTitles.checked : true,
+      title: el.title ? el.title.value : "",
       fit_to_content: el.fit ? el.fit.checked : true,
       page_margin_cm: (function () {
         var m = el.margin ? parseFloat(el.margin.value) : 0.3;
         return isNaN(m) || m < 0 ? 0.3 : m;
+      })(),
+      telomere_length: (function () {
+        var v = el.telomereLength ? parseInt(el.telomereLength.value, 10) : NaN;
+        return isNaN(v) || v < 0 ? 10000 : v;
+      })(),
+      chromosomes_per_row: (function () {
+        var v = el.columns ? parseInt(el.columns.value, 10) : NaN;
+        return isNaN(v) || v < 0 ? 0 : v;
+      })(),
+      row_height_cm: (function () {
+        var v = el.rowHeight ? parseFloat(el.rowHeight.value) : NaN;
+        return isNaN(v) || v < 1.2 ? 3.0 : v;
+      })(),
+      length_cm: (function () {
+        var v = el.lengthCm ? parseFloat(el.lengthCm.value) : NaN;
+        return isNaN(v) || v < 4 ? 16.0 : v;
+      })(),
+      split_by_strand: el.noSplitStrand ? !el.noSplitStrand.checked : true,
+      legend_columns: (function () {
+        var v = el.legendColumns ? parseInt(el.legendColumns.value, 10) : NaN;
+        return isNaN(v) || v < 0 ? 0 : v;
       })(),
       only_chromosomes: collectChroms(),
       only_families: collectFamilies(),
@@ -472,14 +561,14 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data) return;
-        el.analytics.hidden = false;
+        if (el.tabbtnStats) el.tabbtnStats.hidden = false;
         el.analyticsSummary.innerHTML =
           renderSummary(data) + renderTelomereTable(data.telomere_bias_table);
         el.coloc.innerHTML = renderColocTable(data.colocalization_table);
 
         var gpf = data.genes_per_family || [];
         el.genesChart.innerHTML = renderGenesChart(data, colorMap || {});
-        el.genesSection.hidden = gpf.length === 0;
+        if (el.tabbtnGenes) el.tabbtnGenes.hidden = gpf.length === 0;
         el.genesSection.querySelectorAll("[data-chart-fmt]").forEach(function (a) {
           a.href = cfg.chartBase.replace("FMT", a.dataset.chartFmt);
         });
@@ -493,20 +582,30 @@
   }
 
   // after a Regenerate the server discards cached chart images so they pick up
-  // the new style (e.g. titles on/off); repoint the previews with a cache-buster
+  // the new style (e.g. titles on/off); repoint every preview (not just the one
+  // currently selected in the dropdown) with a cache-buster so switching the
+  // dropdown later never shows a stale image
   function refreshChartImages() {
     if (!el.analyticsFigs) return;
     var stamp = "_v=" + Date.now();
     el.analyticsFigs.querySelectorAll(".an-fig").forEach(function (block) {
-      if (block.hidden) return;
       var img = block.querySelector("[data-chart-img]");
-      if (!img) return;
+      if (!img || !img.getAttribute("src")) return;
       var u = chartUrl(block.dataset.chart, "png");
       img.src = u + (u.indexOf("?") < 0 ? "?" : "&") + stamp;
     });
   }
 
-  // preview + download links for the stand-alone analytics figures
+  // shows only the chart currently picked in the dropdown (among applicable ones)
+  function showSelectedFig() {
+    if (!el.figsSelect) return;
+    var which = el.figsSelect.value;
+    el.analyticsFigs.querySelectorAll(".an-fig").forEach(function (block) {
+      block.hidden = block.dataset.chart !== which;
+    });
+  }
+
+  // dropdown + preview + download links for the stand-alone analytics figures
   function wireAnalyticsFigures(data) {
     if (!el.analyticsFigs) return;
     var have = {
@@ -515,24 +614,41 @@
       family_proximity: (data.family_proximity_order || []).length >= 2
     };
     var any = false;
+    var firstAvailable = null;
+    if (el.figsSelect) {
+      Array.prototype.slice.call(el.figsSelect.options).forEach(function (opt) {
+        opt.hidden = !have[opt.value];
+        opt.disabled = !have[opt.value];
+      });
+    }
     el.analyticsFigs.querySelectorAll(".an-fig").forEach(function (block) {
       var which = block.dataset.chart;
-      if (!have[which]) { block.hidden = true; return; }
-      block.hidden = false;
+      if (!have[which]) return;
       any = true;
+      if (firstAvailable === null) firstAvailable = which;
       var img = block.querySelector("[data-chart-img]");
       if (img && !img.getAttribute("src")) img.src = chartUrl(which, "png");
       block.querySelectorAll("[data-chart-fmt]").forEach(function (a) {
         a.href = chartUrl(which, a.dataset.chartFmt);
       });
     });
-    el.analyticsFigs.hidden = !any;
+    if (el.figsSelect && firstAvailable && !have[el.figsSelect.value]) {
+      el.figsSelect.value = firstAvailable;
+    }
+    showSelectedFig();
+    if (el.tabbtnFigs) el.tabbtnFigs.hidden = !any;
   }
+
+  if (el.figsSelect) el.figsSelect.addEventListener("change", showSelectedFig);
 
   // Cap each analytics table to N visible rows (default 10) with a scroll
   // region; the per-table <select> lets the user change N or show all.
-  function bindRowLimits(root) {
-    root.querySelectorAll(".table-block").forEach(function (block) {
+  // Row heights can only be measured while the table is actually laid out
+  // (not inside a hidden tab panel), so each block's apply() is kept around
+  // and re-run by remeasureRowLimits() once its tab becomes visible.
+  var rowLimitApplies = [];
+  function bindRowLimits(scopeRoot) {
+    scopeRoot.querySelectorAll(".table-block").forEach(function (block) {
       var scroll = block.querySelector(".table-scroll");
       var sel = block.querySelector(".rows-select");
       if (!scroll || !sel) return;
@@ -556,7 +672,12 @@
       }
       sel.addEventListener("change", apply);
       apply();
+      rowLimitApplies.push(apply);
     });
+  }
+
+  function remeasureRowLimits() {
+    rowLimitApplies.forEach(function (apply) { apply(); });
   }
 
   function rowLimitControl() {

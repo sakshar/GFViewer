@@ -199,9 +199,16 @@ class JobManager:
         genes = features[features["kind"] == "gene"]
         fam_order = list(dict.fromkeys(genes["gene_family"].tolist()))
         fam_counts = genes["gene_family"].value_counts().to_dict()
+        max_families = None
+        if p.get("collapse_keep_top") not in (None, ""):
+            try:
+                max_families = int(p["collapse_keep_top"])
+            except (TypeError, ValueError):
+                max_families = None
         color_map, pal_warn, collapsed = build_palette(
             fam_order, color_file=meta["extra_paths"].get("colors"),
             collapse_rare=p.get("collapse_rare", False), family_counts=fam_counts,
+            max_families=max_families,
         )
         warnings += pal_warn
         if collapsed:
