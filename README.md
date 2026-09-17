@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sakshar/GFViewer/main/static/images/logo.png" alt="GFViewer" width="80%">
+  <img src="https://raw.githubusercontent.com/sakshar/GFViewer/main/static/images/lockup.svg" alt="GFViewer" width="80%">
 </p>
 
 
@@ -150,5 +150,5 @@ pytest -q
 
 ## Citation
 
-Chakravarty S. & Lonardi S. *Visualizing the localization of multigene families
-with GFViewer.* Development supported by NIH grant 1-R01-AI169543-01.
+Chakravarty S. & Lonardi S. *Visualizing multigene families with GFViewer.*
+Development supported by NIH grant 1-R01-AI169543-01 and NSF grant IIS-2444456, both to SL.

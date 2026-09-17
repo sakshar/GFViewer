@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GFViewer{% endblock %} &middot; GFViewer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/icon.svg') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
     <header class="site-header">
         <a class="brand" href="{{ url_for('main.index') }}">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="GFViewer">
+            <img src="{{ url_for('static', filename='images/lockup.svg') }}" alt="GFViewer">
         </a>
         <nav class="site-nav">
             <a href="{{ url_for('main.index') }}">Home</a>
@@ -33,8 +34,9 @@
         </div>
         <div class="foot-col foot-center">
             <div class="foot-logos">
-                <img src="{{ url_for('static', filename='images/NIH-logo.png') }}" alt="NIH">
                 <img src="{{ url_for('static', filename='images/UCR_Icon_WhtBG.png') }}" alt="UCR">
+                <img src="{{ url_for('static', filename='images/NSF_logo.png') }}" alt="NSF">
+                <img src="{{ url_for('static', filename='images/NIH-logo.png') }}" alt="NIH">
             </div>
             <p>&copy; 2026 <a href="https://www.cs.ucr.edu/~stelo/">Lonardi Lab</a> &middot; Powered by Flask</p>
         </div>

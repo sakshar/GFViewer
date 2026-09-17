@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+<path d="M 165.96 81.43 C 149.75 62.11 123.18 54.99 99.48 63.62 C 75.78 72.25 60.00 94.78 60.00 120.00 C 60.00 145.22 75.78 167.75 99.48 176.38 C 123.18 185.01 149.75 177.89 165.96 158.57" fill="none" stroke="#1B2A44" stroke-width="26.00" stroke-linecap="round"/>
+<line x1="166.00" y1="120.00" x2="126.00" y2="120.00" stroke="#1B2A44" stroke-width="26.00" stroke-linecap="round"/>
+<circle cx="94.64" cy="65.62" r="8.50" fill="#159C93"/>
+<circle cx="70.85" cy="85.58" r="8.50" fill="#EF6A54"/>
+<circle cx="65.62" cy="145.36" r="8.50" fill="#F3B13B"/>
+<circle cx="90.00" cy="171.96" r="8.50" fill="#5B63D6"/>
+</svg>
