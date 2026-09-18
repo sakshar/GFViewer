@@ -145,6 +145,14 @@ def job_bundle(job_id):
                      download_name=os.path.basename(path))
 
 
+@bp.get("/jobs/<job_id>/bundle/stats")
+def job_bundle_stats(job_id):
+    path = _jobs().stats_bundle(job_id)
+    _track("downloads")
+    return send_file(path, as_attachment=True, mimetype="application/zip",
+                     download_name=os.path.basename(path))
+
+
 @bp.get("/jobs/<job_id>/analytics/<name>")
 def job_analytics(job_id, name):
     if "/" in name or "\\" in name or not name.startswith("analytics_"):

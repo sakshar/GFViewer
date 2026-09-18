@@ -39,6 +39,7 @@ from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 from matplotlib.collections import LineCollection  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.patches import Polygon  # noqa: E402
+from matplotlib.path import Path as _MplPath  # noqa: E402
 
 CM = 1 / 2.54
 PT_TO_CM = 2.54 / 72.0
@@ -456,7 +457,7 @@ def _draw_chromosome(
         tip_t = sgn * (r + lay.tick_len)
         fam_segs.setdefault(fam, []).append(pl.seg(gl, edge_t, gl, tip_t))
         tip_xy = pl.pt(gl, tip_t)
-        if style.tick_style in ("lollipop", "triangle", "arrow"):
+        if style.tick_style in ("lollipop", "triangle", "arrow", "box"):
             fam_tips.setdefault(fam, []).append((tip_xy[0], tip_xy[1], pos_side))
         if style.label_mode == "gene_id":
             labels.append((tip_xy[0], tip_xy[1], sgn, str(g["gene_id"]),
@@ -484,6 +485,23 @@ def _draw_chromosome(
 
 
 # --------------------------------------------------------------------------- #
+# filled arrowhead marker paths for tick_style="arrow", one per outward
+# direction; distinct from the plain solid "triangle" marker.
+_ARROW_VERTS = {
+    "up": [(0.0, 1.3), (1.05, -0.55), (0.0, -0.1), (-1.05, -0.55)],
+    "down": [(0.0, -1.3), (1.05, 0.55), (0.0, 0.1), (-1.05, 0.55)],
+    "right": [(1.3, 0.0), (-0.55, 1.05), (-0.1, 0.0), (-0.55, -1.05)],
+    "left": [(-1.3, 0.0), (0.55, 1.05), (0.1, 0.0), (0.55, -1.05)],
+}
+
+
+def _arrow_marker(direction):
+    verts = _ARROW_VERTS[direction]
+    verts = verts + [verts[0]]
+    codes = [_MplPath.MOVETO] + [_MplPath.LINETO] * (len(verts) - 2) + [_MplPath.CLOSEPOLY]
+    return _MplPath(verts, codes)
+
+
 def _emit_family_marks(ax, style, color_map, fam_segs, fam_tips):
     for fam, segs in fam_segs.items():
         lc = LineCollection(
@@ -499,6 +517,12 @@ def _emit_family_marks(ax, style, color_map, fam_segs, fam_tips):
         size = max(10, (style.tick_width * 7) ** 1.05)
         if style.tick_style == "lollipop":
             m_pos = m_neg = "o"
+        elif style.tick_style == "box":
+            m_pos = m_neg = "s"
+        elif style.tick_style == "arrow":
+            m_pos, m_neg = (_arrow_marker("up"), _arrow_marker("down")) if horiz \
+                else (_arrow_marker("right"), _arrow_marker("left"))
+            size = size * 1.4
         elif horiz:
             m_pos, m_neg = "^", "v"
         else:

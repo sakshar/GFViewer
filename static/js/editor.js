@@ -10,6 +10,7 @@
     downloadBase: root.dataset.downloadBase,
     chartBase: root.dataset.chartBase,
     bundleUrl: root.dataset.bundleUrl,
+    bundleStatsUrl: root.dataset.bundleStatsUrl,
     analyticsBase: root.dataset.analyticsBase
   };
 
@@ -63,6 +64,7 @@
     figsSelect: document.getElementById("gfv-figs-select"),
     dlBundle: document.getElementById("gfv-dl-bundle"),
     dlBundleAll: document.getElementById("gfv-dl-bundle-all"),
+    dlStatsBundle: document.getElementById("gfv-dl-stats-bundle"),
     zoomIn: document.getElementById("gfv-zoom-in"),
     zoomOut: document.getElementById("gfv-zoom-out"),
     zoomReset: document.getElementById("gfv-zoom-reset"),
@@ -208,10 +210,7 @@
   el.famAll.addEventListener("change", function () {
     var on = el.famAll.checked;
     el.famList.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
-      if (cb.checked !== on) {
-        cb.checked = on;
-        toggleFamily(cb.dataset.fam, on);
-      }
+      cb.checked = on;
     });
   });
 
@@ -303,7 +302,6 @@
       cb.checked = pick ? !!pick[fam] : true;
       cb.dataset.fam = fam;
       cb.addEventListener("change", function () {
-        toggleFamily(fam, cb.checked);
         syncFamAll();
       });
 
@@ -365,14 +363,6 @@
         });
         makeDraggable();
       });
-  }
-
-  function toggleFamily(fam, on) {
-    var g = slug(fam);
-    ["gfv-fam-" + g, "gfv-fam-" + g + "-tips"].forEach(function (id) {
-      var node = svgById(id);
-      if (node) node.style.display = on ? "" : "none";
-    });
   }
 
   function svgById(id) {
@@ -537,6 +527,7 @@
       if (el.dlBundle) el.dlBundle.href = cfg.bundleUrl;
       if (el.dlBundleAll) el.dlBundleAll.href = cfg.bundleUrl + "?all=1";
     }
+    if (el.dlStatsBundle && cfg.bundleStatsUrl) el.dlStatsBundle.href = cfg.bundleStatsUrl;
     el.dlEdited.addEventListener("click", function (ev) {
       ev.preventDefault();
       var s = svg();

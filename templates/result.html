@@ -9,6 +9,7 @@
      data-download-base="{{ url_for('api.job_download', job_id=job.id, fmt='FMT') }}"
      data-chart-base="{{ url_for('api.job_chart', job_id=job.id, fmt='FMT') }}"
      data-bundle-url="{{ url_for('api.job_bundle', job_id=job.id) }}"
+     data-bundle-stats-url="{{ url_for('api.job_bundle_stats', job_id=job.id) }}"
      data-analytics-base="{{ url_for('api.job_analytics', job_id=job.id, name='NAME') }}">
 
     <div id="gfv-state" class="state">
@@ -26,15 +27,14 @@
     <div id="gfv-workspace" class="workspace" hidden>
         <nav class="tabs" id="gfv-tabs">
             <button type="button" class="tab-btn active" data-tab="gfv-panel-figure">Chromosome figure</button>
-            <button type="button" class="tab-btn" data-tab="gfv-genes-section" id="gfv-tabbtn-genes" hidden>Genes per family</button>
-            <button type="button" class="tab-btn" data-tab="gfv-analytics-figs" id="gfv-tabbtn-figs" hidden>Analytics figures</button>
-            <button type="button" class="tab-btn" data-tab="gfv-analytics" id="gfv-tabbtn-stats" hidden>Localization analytics</button>
+            <button type="button" class="tab-btn" data-tab="gfv-genes-section" id="gfv-tabbtn-genes" hidden>Gene density</button>
+            <button type="button" class="tab-btn" data-tab="gfv-analytics-figs" id="gfv-tabbtn-figs" hidden>Positional density</button>
+            <button type="button" class="tab-btn" data-tab="gfv-analytics" id="gfv-tabbtn-stats" hidden>Localization statistics</button>
         </nav>
 
         <div id="gfv-panel-figure" class="tab-panel">
         <div class="figure-row">
         <aside class="adjust-panel">
-            <h3>Adjust</h3>
             <nav class="tabs adjust-tabs" id="gfv-adjust-tabs">
                 <button type="button" class="tab-btn active" data-atab="gfv-adj-families">Families</button>
                 <button type="button" class="tab-btn" data-atab="gfv-adj-chroms">Chromosomes</button>
@@ -143,11 +143,13 @@
                     <input type="number" id="gfv-legend-columns" min="0" value="0">
                 </label>
                 <label>Mark style
-                    <span class="info-tip" tabindex="0" data-tip="How each gene is drawn on the chromosome: a short line, a lollipop (line with a dot at the tip), or a triangle.">i</span>
+                    <span class="info-tip" tabindex="0" data-tip="How each gene is drawn on the chromosome: a short line, a lollipop (line with a dot at the tip), a triangle, a box, or an arrow.">i</span>
                     <select id="gfv-tick-style">
                         <option value="line">line</option>
-                        <option value="lollipop">lollipop</option>
+                        <option value="lollipop" selected>lollipop</option>
                         <option value="triangle">triangle</option>
+                        <option value="box">box</option>
+                        <option value="arrow">arrow</option>
                     </select>
                 </label>
                 <label class="check"><input type="checkbox" id="gfv-centromeres"> Draw centromeres
@@ -193,7 +195,7 @@
         </div>
 
         <section id="gfv-genes-section" class="tab-panel card" hidden>
-            <h3>Genes per family</h3>
+            <h3>Gene density</h3>
             <div id="gfv-genes-chart" class="genes-chart"></div>
             <div class="dl-row">
                 <span class="muted">Download chart:</span>
@@ -208,7 +210,7 @@
         </section>
 
         <section id="gfv-analytics-figs" class="tab-panel card" hidden>
-            <h3>Analytics figures</h3>
+            <h3>Positional density</h3>
             <label class="figs-select-label">Figure
                 <select id="gfv-figs-select">
                     <option value="positional_profile">Positional density profile</option>
@@ -259,7 +261,7 @@
         </section>
 
         <section id="gfv-analytics" class="tab-panel card analytics" hidden>
-            <h3>Localization analytics</h3>
+            <h3>Localization statistics</h3>
             <p class="muted">Per-family counts and density, sub-telomeric enrichment,
                permutation tests for telomere- and centromere-proximal bias,
                tandem-array detection, tandem/proximal/dispersed duplication mode,
@@ -271,27 +273,29 @@
             <div id="gfv-analytics-summary" class="analytics-summary"></div>
             <div id="gfv-coloc"></div>
             <p class="muted">Download tables (see the <a href="/help#outputs">Help page</a>
-               for column definitions):
-                <a data-name="analytics_family_summary.csv">family summary</a> &middot;
-                <a data-name="analytics_family_by_chromosome.csv">by chromosome</a> &middot;
-                <a data-name="analytics_gene_metrics.csv">per-gene metrics</a> &middot;
-                <a data-name="analytics_telomere_bias.csv">telomere bias</a> &middot;
-                <a data-name="analytics_centromere_bias.csv">centromere bias</a> &middot;
-                <a data-name="analytics_arm_bias.csv">arm bias</a> &middot;
-                <a data-name="analytics_tandem_arrays.csv">tandem arrays</a> &middot;
-                <a data-name="analytics_array_summary.csv">array summary</a> &middot;
-                <a data-name="analytics_duplication_modes.csv">duplication modes</a> &middot;
-                <a data-name="analytics_ripley.csv">Ripley K/L</a> &middot;
-                <a data-name="analytics_chromosome_enrichment.csv">chromosome enrichment</a> &middot;
-                <a data-name="analytics_strand_bias.csv">strand bias</a> &middot;
-                <a data-name="analytics_chromosome_richness.csv">chromosome richness</a> &middot;
-                <a data-name="analytics_positional_profile.csv">positional profile</a> &middot;
-                <a data-name="analytics_family_proximity.csv">proximity matrix</a> &middot;
-                <a data-name="analytics_hotspots.csv">hotspots</a> &middot;
-                <a data-name="analytics_hotspots.bed">hotspots (BED)</a> &middot;
-                <a data-name="analytics_colocalization.csv">co-localization</a> &middot;
-                <a data-name="analytics_summary.json">summary (JSON)</a>
-            </p>
+               for column definitions):</p>
+            <div class="dl-row">
+                <a class="btn small" data-name="analytics_family_summary.csv">family summary</a>
+                <a class="btn small" data-name="analytics_family_by_chromosome.csv">by chromosome</a>
+                <a class="btn small" data-name="analytics_gene_metrics.csv">per-gene metrics</a>
+                <a class="btn small" data-name="analytics_telomere_bias.csv">telomere bias</a>
+                <a class="btn small" data-name="analytics_centromere_bias.csv">centromere bias</a>
+                <a class="btn small" data-name="analytics_arm_bias.csv">arm bias</a>
+                <a class="btn small" data-name="analytics_tandem_arrays.csv">tandem arrays</a>
+                <a class="btn small" data-name="analytics_array_summary.csv">array summary</a>
+                <a class="btn small" data-name="analytics_duplication_modes.csv">duplication modes</a>
+                <a class="btn small" data-name="analytics_ripley.csv">Ripley K/L</a>
+                <a class="btn small" data-name="analytics_chromosome_enrichment.csv">chromosome enrichment</a>
+                <a class="btn small" data-name="analytics_strand_bias.csv">strand bias</a>
+                <a class="btn small" data-name="analytics_chromosome_richness.csv">chromosome richness</a>
+                <a class="btn small" data-name="analytics_positional_profile.csv">positional profile</a>
+                <a class="btn small" data-name="analytics_family_proximity.csv">proximity matrix</a>
+                <a class="btn small" data-name="analytics_hotspots.csv">hotspots</a>
+                <a class="btn small" data-name="analytics_hotspots.bed">hotspots (BED)</a>
+                <a class="btn small" data-name="analytics_colocalization.csv">co-localization</a>
+                <a class="btn small" data-name="analytics_summary.json">summary (JSON)</a>
+            </div>
+            <p class="muted"><a class="btn small" id="gfv-dl-stats-bundle">Download all tables (ZIP)</a></p>
         </section>
     </div>
 </div>

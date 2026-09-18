@@ -7,7 +7,7 @@ name = "gfviewer"
 # Keep in sync with gfviewer/__init__.py::__version__ (tests/test_packaging.py
 # enforces this).  A dynamic attr= lookup is not used because the top-level
 # gfviewer.py shim shadows the package during setuptools' metadata build.
-version = "2.0.3"
+version = "2.0.4"
 description = "Visualize and quantify the localization of multigene families across chromosomes"
 readme = "README.md"
 requires-python = ">=3.8"

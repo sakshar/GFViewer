@@ -38,7 +38,7 @@ a:hover { color: var(--navy); text-decoration: underline; }
   background: var(--bg-soft);
 }
 .brand { display: block; grid-column: 2; }
-.brand img { width: 30vw; height: auto; display: block; margin: 0 auto; }
+.brand img { width: 35vw; height: auto; display: block; margin: 0 auto; }
 .site-nav { grid-column: 3; align-self: end; display: flex; gap: 1.25rem; justify-content: flex-end; flex-wrap: wrap; }
 .site-nav a { color: var(--ink); font-weight: 600; }
 .site-nav a:hover { color: var(--maroon); text-decoration: none; }

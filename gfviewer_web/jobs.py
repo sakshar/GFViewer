@@ -246,6 +246,8 @@ class JobManager:
 
     def _style_from_params(self, p, style_file):
         style = StyleConfig.load(style_file) if style_file else StyleConfig()
+        if not style_file:
+            style.tick_style = "lollipop"
         m = {
             "orientation": ("orientation", str),
             "telomere_length": ("telomere_length", int),
@@ -469,6 +471,50 @@ class JobManager:
                 if name.endswith(".zip"):
                     continue
                 z.write(os.path.join(out, name), arcname=name)
+        return zpath
+
+    # the table/summary downloads listed on the "Localization statistics" tab
+    STATS_FILES = (
+        "analytics_family_summary.csv",
+        "analytics_family_by_chromosome.csv",
+        "analytics_gene_metrics.csv",
+        "analytics_telomere_bias.csv",
+        "analytics_centromere_bias.csv",
+        "analytics_arm_bias.csv",
+        "analytics_tandem_arrays.csv",
+        "analytics_array_summary.csv",
+        "analytics_duplication_modes.csv",
+        "analytics_ripley.csv",
+        "analytics_chromosome_enrichment.csv",
+        "analytics_strand_bias.csv",
+        "analytics_chromosome_richness.csv",
+        "analytics_positional_profile.csv",
+        "analytics_family_proximity.csv",
+        "analytics_hotspots.csv",
+        "analytics_hotspots.bed",
+        "analytics_colocalization.csv",
+        "analytics_summary.json",
+    )
+
+    def stats_bundle(self, job_id):
+        """Zip just the localization-statistics tables (no figures/images)."""
+        meta = self.get(job_id)
+        if not meta or meta["state"] != "done":
+            raise JobError("Job is not ready.")
+        out = self._p(job_id, "out")
+        zpath = os.path.join(out, "gfviewer_localization_statistics.zip")
+        try:
+            if os.path.exists(zpath):
+                os.remove(zpath)
+        except OSError:
+            pass
+        import zipfile
+
+        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+            for name in self.STATS_FILES:
+                path = self.analytics_path(job_id, name)
+                if path:
+                    z.write(path, arcname=name)
         return zpath
 
     # ------------------------------------------------------------------ #
